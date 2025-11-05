@@ -1,4 +1,16 @@
-.venv
+# Python cache & environment
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+env/
+venv/
+
+# Environment variables
 .env
-migrations
-__pycash__
+
+# Migrations
+migrations/
+
+# System files
+.DS_Store
