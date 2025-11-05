@@ -1,70 +1,58 @@
-from typing import Any, AsyncGenerator
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from app.core.config import settings
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+from beanie import init_beanie
+from app.core.settings import settings
+from app.models.user_models import User, VerificationCode, RefreshedToken, Admins, UserProfile, PhoneNumber, \
+    UserPreferences
 import logging
-
-from app.models.base import Base
 
 logger = logging.getLogger(__name__)
 
-# Construct the AsyncPostgreSQL connection URL
-ASYNC_SQLALCHEMY_DATABASE_URL = settings.SQLALCHEMY_DATABASE_URI
 
-# Create the async engine with optimized settings
-engine = create_async_engine(
-    ASYNC_SQLALCHEMY_DATABASE_URL,
-    pool_size=settings.DB_POOL_MIN,
-    max_overflow=settings.DB_POOL_MAX - settings.DB_POOL_MIN,
-    pool_timeout=settings.DB_POOL_TIMEOUT,
-    pool_recycle=3600,  # Recycle connections after 1 hour
-    echo=False,  # Disable in production
-    future=True,
-)
+class Database:
+    def __init__(self):
+        self.client: AsyncIOMotorClient | None = None
+        self.db: AsyncIOMotorDatabase | None = None
 
-# Create an async session factory
-AsyncSessionLocal = async_sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-    autocommit=False,
-    autoflush=False,
-)
+    async def connect(self):
+        """Connect to MongoDB and initialize Beanie"""
+        if not self.client:
+            try:
+                # Get the connection URL from settings
+                mongo_url = settings.mongo_url
+                self.client = AsyncIOMotorClient(mongo_url)
+                self.db = self.client[settings.MONGO_DB]
 
-# Define the base class for models
+                # Test connection first
+                await self.client.admin.command('ping')
+
+                # Initialize Beanie
+                await init_beanie(
+                    database=self.db,
+                    document_models=[
+                        User,
+                        Admins,
+                        UserProfile,
+                        PhoneNumber,
+                        UserPreferences,
+                        VerificationCode,
+                        RefreshedToken],
+                )
+
+            except Exception as e:
+                logger.error(f"❌ MongoDB connection failed: {e}")
+                # Clean up on failure
+                if self.client:
+                    self.client.close()
+                    self.client = None
+                    self.db = None
+                raise
+
+    async def disconnect(self):
+        if self.client:
+            self.client.close()
+            self.client = None
+            self.db = None
 
 
-async def get_async_db() -> AsyncGenerator[AsyncSession | Any, Any]:
-    """
-    Async generator that yields database sessions.
-    Ensures sessions are properly closed after use.
-    """
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception as e:
-            await session.rollback()
-            logger.error(f"Database session failed: {str(e)}")
-            raise
-        finally:
-            await session.close()
-
-async def init_db():
-    """
-    Initialize the database by creating all tables.
-    Should be called during application startup.
-    """
-    logger.info("Initializing database...")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    logger.info("Database initialized successfully")
-
-async def close_db():
-    """
-    Close all database connections.
-    Should be called during application shutdown.
-    """
-    logger.info("Closing database connections...")
-    await engine.dispose()
-    logger.info("Database connections closed successfully")
+mongodb = Database()
