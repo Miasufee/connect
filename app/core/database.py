@@ -2,7 +2,7 @@
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from beanie import init_beanie
 from app.core.settings import settings
-from app.models.user_models import User, VerificationCode, RefreshedToken, Admins, UserProfile, PhoneNumber, \
+from app.models.user_models import User, VerificationCode, RefreshedToken, UserProfile, PhoneNumber, \
     UserPreferences
 import logging
 
@@ -31,7 +31,6 @@ class Database:
                     database=self.db,
                     document_models=[
                         User,
-                        Admins,
                         UserProfile,
                         PhoneNumber,
                         UserPreferences,

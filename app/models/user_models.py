@@ -11,8 +11,9 @@ from app.models.models_base import TimestampMixin
 # Enums
 # ------------------------------
 
-class Role(str, Enum):
+class UserRole(str, Enum):
     """User roles."""
+    user = "user"
     admin = "admin"
     super_admin = "superadmin"
     superuser = "superuser"
@@ -21,39 +22,26 @@ class Role(str, Enum):
 # Main User Document
 # ------------------------------
 
-class AuthMixin(BaseModel):
-    token_version: int = 1
-    last_login_at: Optional[datetime] = None
-
-class EmailMixin(AuthMixin):
-    email: EmailStr
-
-class User(Document, TimestampMixin, EmailMixin):
+class User(Document, TimestampMixin):
     """Main user document."""
-    user_role: str = "User"
+    email: EmailStr
+    user_role: UserRole = UserRole.user
     is_active: bool = True
     is_email_verified: bool = False
     google_user_id: Optional[str] = None
-    email_verified_at: Optional[datetime] = None
+    hashed_password: Optional[str] = None
+    unique_id: Optional[str] = None
+    token_version: int = 1
+    last_login_at: Optional[datetime] = None
 
     class Settings:
         name = "users"
         indexes = [
             "email",
             "user_role",
-            "is_email_verified"
+            "is_email_verified",
+            "unique_id"
         ]
-
-
-class Admins(Document, TimestampMixin, EmailMixin):
-    """Admins and superusers."""
-    role: Role = Role.admin
-    hashed_password: str = Field(min_length=1)
-    unique_id: str = Field(min_length=1)
-
-    class Settings:
-        name = "admins"
-        indexes = ["email", "unique_id", "role", "is_active"]
 
 # ------------------------------
 # UserProfile
