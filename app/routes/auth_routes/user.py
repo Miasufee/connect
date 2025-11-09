@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Body
+
+from fastapi import APIRouter, Body, status
 from app.core.auth_service.user_auth import user_create_service, user_login_service
 from app.schemas.user_schema import UserCreate, UserLogin, UserResponse
 from app.core.response.success import Success
@@ -14,7 +15,7 @@ async def user_create(user_data: UserCreate = Body(...)):
     return await user_create_service(user_data)
 
 
-@router.post("/login", response_model=UserResponse)
+@router.post("/login")
 async def login_user(user_data: UserLogin = Body(...)):
     """
     Log in user via email + verification code flow.

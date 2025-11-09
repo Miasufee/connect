@@ -23,6 +23,20 @@ class Settings(BaseSettings):
     MONGO_AUTH_SOURCE: str = "admin"
     MONGO_URI: str | None = None
 
+    # === API Security ===
+    API_SUPERUSER_EMAIL: str = ""
+    API_SUPERUSER_SECRET_KEY: str = ""
+
+    FRONTEND_URL: str = "http://localhost:3000"
+
+    EMAIL_HOST: str = "smtp.gmail.com"
+    EMAIL_PORT: int = 587
+    EMAIL_USE_TLS: bool = True
+    EMAIL_HOST_USER: str = "miasufee@gmail.com"  # Your Gmail address
+    EMAIL_HOST_PASSWORD: str = "ahcbvccvsbytpswi"  # The 16-char app password
+    DEFAULT_FROM_EMAIL: str = "miasufee@gmail.com"
+    EMAIL_TIMEOUT: int = 30
+
     # -----------------------
     # JWT
     # -----------------------
@@ -30,6 +44,10 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    PASSWORD_RESET_SECRET_KEY: str = ""
+    PASSWORD_RESET_ALGORITHM: str = ""
+    PASSWORD_RESET_MINUTES_EXPIRE: int = 15
 
     # -----------------------
     # CORS

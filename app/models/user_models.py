@@ -1,7 +1,8 @@
-from datetime import datetime
+import secrets
+from datetime import datetime, timezone, timedelta
 from typing import Optional
-from beanie import Document
-from pydantic import Field, EmailStr, BaseModel
+from beanie import Document, PydanticObjectId
+from pydantic import Field, EmailStr
 from enum import Enum
 
 from app.models.models_base import TimestampMixin
@@ -49,7 +50,7 @@ class User(Document, TimestampMixin):
 
 class UserProfile(Document, TimestampMixin):
     """User profile info."""
-    user_id: str = Field(..., min_length=1)
+    user_id: PydanticObjectId
     first_name: Optional[str] = Field(None, max_length=100)
     last_name: Optional[str] = Field(None, max_length=100)
     avatar_url: Optional[str] = Field(None, max_length=512)
@@ -67,7 +68,7 @@ class UserProfile(Document, TimestampMixin):
 
 class PhoneNumber(Document, TimestampMixin):
     """Phone number structure."""
-    user_id: str = Field(..., min_length=1)
+    user_id: PydanticObjectId
     country_code: str = Field(..., max_length=4)
     phone_number: str = Field(..., max_length=20)
     is_verified: bool = False
@@ -85,7 +86,7 @@ class PhoneNumber(Document, TimestampMixin):
 
 class UserPreferences(Document, TimestampMixin):
     """User preferences and settings."""
-    user_id: str = Field(..., min_length=1)
+    user_id: PydanticObjectId
     email_notifications: bool = True
     sms_notifications: bool = False
     push_notifications: bool = True
@@ -104,7 +105,7 @@ class UserPreferences(Document, TimestampMixin):
 
 class VerificationCode(Document, TimestampMixin):
     """Email/Phone/Password/2FA verification codes."""
-    user_id: str = Field(..., min_length=1)
+    user_id: PydanticObjectId
     code: str = Field(..., max_length=6)
     expires_at: datetime
 
@@ -123,7 +124,7 @@ class VerificationCode(Document, TimestampMixin):
 
 class RefreshedToken(Document, TimestampMixin):
     """Refresh tokens for JWT rotation."""
-    user_id: str = Field(..., min_length=1)
+    user_id: PydanticObjectId
     refresh_token: str = Field(..., max_length=510)
     expires_at: datetime
     revoked: bool = False
@@ -141,3 +142,14 @@ class RefreshedToken(Document, TimestampMixin):
             [("expires_at", 1), ("revoked", 1)],
             [("user_id", 1), ("created_at", -1)]
         ]
+
+class PasswordResetToken(Document):
+    """Stores short-lived password reset tokens for admins/superusers."""
+    email: EmailStr
+    token: str = Field(..., min_length=1)
+    expires_at: datetime
+    used: bool = False
+
+    class Settings:
+        name = "password_reset_tokens"
+        indexes = ["email", "token", "expires_at"]

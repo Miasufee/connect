@@ -85,8 +85,6 @@ def set_token_cookie(response: JSONResponse, token: str, token_type: str, expire
         max_age=expires_in,
         expires=expiry_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
     )
-
-    print(f"Setting {cookie_key} cookie with value: {token[:10]}... (expires in {expires_in} seconds)")
     return response
 
 

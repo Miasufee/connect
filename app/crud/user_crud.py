@@ -1,4 +1,5 @@
 # app/crud/user_crud.py
+from datetime import datetime, timezone
 from typing import Optional, List
 from pydantic import EmailStr
 from .crud_base import CrudBase
@@ -36,6 +37,13 @@ class UserCRUD(CrudBase[User]):
     async def verify_email(self, user_id: str) -> Optional[User]:
         """Mark user's email as verified."""
         return await self.update(user_id, {"is_email_verified": True})
+
+    async def update_last_login(self, user_id: str):
+        """Update user's last login timestamp."""
+        return await self.update(
+            user_id,
+            {"last_login_at": datetime.now(timezone.utc)}
+        )
 
     async def increment_token_version(self, user_id: str) -> Optional[User]:
         """Increment token version (useful for logout all devices)."""

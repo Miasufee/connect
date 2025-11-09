@@ -31,7 +31,6 @@ async def _super_user(request: Request) -> User:
 # ---- Annotated aliases ----
 CurrentUser: TypeAlias = Annotated[User, Depends(_current_user)]
 RegularUser: TypeAlias = Annotated[User, Depends(_current_user)]
-MerchantUser: TypeAlias = Annotated[User, Depends(_current_user)]
 AdminUser: TypeAlias = Annotated[User, Depends(_admin_user)]
 SuperAdminUser: TypeAlias = Annotated[User, Depends(_super_admin_user)]
 SuperUser: TypeAlias = Annotated[User, Depends(_super_user)]
