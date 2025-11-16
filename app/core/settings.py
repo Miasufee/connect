@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     # -----------------------
     # App
     # -----------------------
-    APP_ENV: str = "development"
+    APP_ENV: str = ""
     APP_SECRET_KEY: str = ""
     APP_DEBUG: bool = False
     GOOGLE_CLIENT_ID: str = ""
@@ -27,14 +27,14 @@ class Settings(BaseSettings):
     API_SUPERUSER_EMAIL: str = ""
     API_SUPERUSER_SECRET_KEY: str = ""
 
-    FRONTEND_URL: str = "http://localhost:3000"
+    FRONTEND_URL: str = ""
 
-    EMAIL_HOST: str = "smtp.gmail.com"
+    EMAIL_HOST: str = ""
     EMAIL_PORT: int = 587
-    EMAIL_USE_TLS: bool = True
-    EMAIL_HOST_USER: str = "miasufee@gmail.com"  # Your Gmail address
-    EMAIL_HOST_PASSWORD: str = "ahcbvccvsbytpswi"  # The 16-char app password
-    DEFAULT_FROM_EMAIL: str = "miasufee@gmail.com"
+    EMAIL_USE_TLS: bool
+    EMAIL_HOST_USER: str = ""
+    EMAIL_HOST_PASSWORD: str = ""
+    DEFAULT_FROM_EMAIL: str = ""
     EMAIL_TIMEOUT: int = 30
 
     # -----------------------

@@ -19,7 +19,7 @@ class SoftDeleteMixin(BaseModel):
         """
         self.is_deleted = True
         self.deleted_at = datetime.now(timezone.utc)
-        await self.save()  # persist the changes
+        await self.save()
 
     async def restore(self):
         """
@@ -52,3 +52,6 @@ class TimestampMixin(BaseModel):
         """Automatically set updated_at before insert, replace, or save"""
         self.updated_at = datetime.now(timezone.utc)
 
+def utc_now():
+    """Return timezone-aware UTC datetime"""
+    return datetime.now().astimezone()

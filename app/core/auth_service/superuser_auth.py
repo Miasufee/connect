@@ -38,6 +38,6 @@ async def superuser_create():
     await new_superuser.save()
 
     # Send unique ID via email
-    send_unique_id_to_email(new_superuser, unique_id)
+    await send_unique_id_to_email(new_superuser, unique_id)
 
     return Success.ok("Superuser created and email sent")

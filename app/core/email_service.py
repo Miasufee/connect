@@ -7,38 +7,6 @@ from app.core.settings import settings
 logger = logging.getLogger(__name__)
 
 
-def send_verification_to_email(user, code_record):
-    """
-    Logs only the email and verification code.
-    """
-    email = getattr(user, "email", user)
-    code = getattr(code_record, "code", code_record)
-
-    logger.info(f"📧 Sent verification code '{code}' to {email}")
-    return {"email": email, "code": code, "status": "logged"}
-
-def send_unique_id_to_email(user, unique_d):
-    """
-    Logs only the email and verification code.
-    """
-    email = getattr(user, "email", user)
-    unique_d = getattr(unique_d, "unique_d", unique_d)
-
-    logger.info(f"📧 Sent unique_id code '{unique_d}' to {email}")
-    return {"email": email, "unique_id": unique_d, "status": "logged"}
-
-# def send_password_reset_email(email: str, token: str, role: str):
-#     email = getattr(email, "email", email)
-#     token = getattr(token, "token", token)
-#     role = getattr(role, "role", role)
-#
-#     logger.info(f"sent reset token to the email{email} token {token} user role {role}")
-#     return {"email": email, "token": token, "role":role}
-#
-#
-
-
-
 class EmailService:
     def __init__(self):
         self.smtp_server = settings.EMAIL_HOST
@@ -55,25 +23,14 @@ class EmailService:
             text_content: str = None
     ) -> bool:
         """
-        Send email using Gmail SMTP.
-
-        Args:
-            to_email: Recipient email address
-            subject: Email subject
-            html_content: HTML content (optional)
-            text_content: Plain text content (optional)
-
-        Returns:
-            bool: True if email sent successfully
+        Send email using SMTP.
         """
         try:
-            # Create message
             msg = MIMEMultipart('alternative')
             msg['Subject'] = subject
             msg['From'] = settings.DEFAULT_FROM_EMAIL
             msg['To'] = to_email
 
-            # Attach both HTML and text parts
             if text_content:
                 text_part = MIMEText(text_content, 'plain')
                 msg.attach(text_part)
@@ -82,11 +39,9 @@ class EmailService:
                 html_part = MIMEText(html_content, 'html')
                 msg.attach(html_part)
 
-            # Connect to SMTP server and send
             with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
                 if self.use_tls:
-                    server.starttls()  # Enable TLS encryption
-
+                    server.starttls()
                 server.login(self.smtp_username, self.smtp_password)
                 server.send_message(msg)
 
@@ -97,11 +52,252 @@ class EmailService:
             logger.error(f"Failed to send email to {to_email}: {e}")
             return False
 
+    async def send_verification_code_email(
+            self,
+            email: str,
+            verification_code: str,
+            expires_in_minutes: int = 10
+    ) -> bool:
+        """Send verification code email for login/account creation."""
+        subject = "Your Verification Code"
+
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .code {{ 
+                    background: #f4f4f4; 
+                    padding: 15px; 
+                    border-radius: 8px; 
+                    font-family: monospace; 
+                    font-size: 24px; 
+                    font-weight: bold; 
+                    text-align: center;
+                    letter-spacing: 5px;
+                    color: #007bff;
+                    margin: 20px 0;
+                    border: 2px dashed #007bff;
+                }}
+                .button {{ 
+                    display: inline-block; 
+                    background: #007bff; 
+                    color: white; 
+                    padding: 12px 24px; 
+                    text-decoration: none; 
+                    border-radius: 4px; 
+                    margin: 20px 0; 
+                }}
+                .footer {{ margin-top: 30px; font-size: 12px; color: #666; }}
+                .warning {{ color: #dc3545; font-weight: bold; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h2>Verification Code</h2>
+                <p>Use the verification code below to complete your login:</p>
+
+                <div class="code">{verification_code}</div>
+
+                <p class="warning">This code will expire in <strong>{expires_in_minutes} minutes</strong>.</p>
+
+                <p>If you didn't request this code, please ignore this email.</p>
+
+                <div class="footer">
+                    <p>For security reasons, do not share this code with anyone.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        text_content = f"""
+        Verification Code
+
+        Use this code to complete your login:
+
+        {verification_code}
+
+        This code will expire in {expires_in_minutes} minutes.
+
+        If you didn't request this code, please ignore this email.
+
+        For security reasons, do not share this code with anyone.
+        """
+
+        return await self.send_email(
+            to_email=email,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content
+        )
+
+    async def send_welcome_email(
+            self,
+            email: str,
+            user_name: str = None
+    ) -> bool:
+        """Send welcome email after account creation."""
+        subject = "Welcome to Our Platform!"
+
+        greeting = f"Hello {user_name}!" if user_name else "Hello!"
+
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .welcome {{ color: #28a745; font-size: 24px; font-weight: bold; }}
+                .button {{ 
+                    display: inline-block; 
+                    background: #28a745; 
+                    color: white; 
+                    padding: 12px 24px; 
+                    text-decoration: none; 
+                    border-radius: 4px; 
+                    margin: 20px 0; 
+                }}
+                .footer {{ margin-top: 30px; font-size: 12px; color: #666; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="welcome">🎉 Welcome!</div>
+                <h2>{greeting}</h2>
+
+                <p>Thank you for creating an account with us! We're excited to have you on board.</p>
+
+                <p>Your account has been successfully created and is ready to use.</p>
+
+                <h3>What's Next?</h3>
+                <ul>
+                    <li>Complete your profile</li>
+                    <li>Explore our features</li>
+                    <li>Get started with your first project</li>
+                </ul>
+
+                <div class="footer">
+                    <p>If you have any questions, feel free to contact our support team.</p>
+                    <p>Best regards,<br>The Team</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        text_content = f"""
+        Welcome to Our Platform!
+
+        {greeting}
+
+        Thank you for creating an account with us! We're excited to have you on board.
+
+        Your account has been successfully created and is ready to use.
+
+        What's Next?
+        • Complete your profile
+        • Explore our features  
+        • Get started with your first project
+
+        If you have any questions, feel free to contact our support team.
+
+        Best regards,
+        The Team
+        """
+
+        return await self.send_email(
+            to_email=email,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content
+        )
+
+    async def send_unique_id_email(
+            self,
+            email: str,
+            unique_id: str
+    ) -> bool:
+        """Send unique ID to user (for account reference, etc.)."""
+        subject = "Your Account Unique ID"
+
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .unique-id {{ 
+                    background: #f8f9fa; 
+                    padding: 15px; 
+                    border-radius: 8px; 
+                    font-family: monospace; 
+                    font-size: 18px; 
+                    font-weight: bold; 
+                    text-align: center;
+                    border: 2px solid #6c757d;
+                    word-break: break-all;
+                    margin: 20px 0;
+                }}
+                .footer {{ margin-top: 30px; font-size: 12px; color: #666; }}
+                .note {{ background: #fff3cd; padding: 10px; border-radius: 4px; border-left: 4px solid #ffc107; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h2>Your Unique Account ID</h2>
+                <p>Here is your unique account identifier:</p>
+
+                <div class="unique-id">{unique_id}</div>
+
+                <div class="note">
+                    <p><strong>Please keep this ID safe.</strong> You may need it for:</p>
+                    <ul>
+                        <li>Account verification</li>
+                        <li>Support requests</li>
+                        <li>Account recovery</li>
+                    </ul>
+                </div>
+
+                <div class="footer">
+                    <p>This is an automated message. Please do not reply to this email.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        text_content = f"""
+        Your Unique Account ID
+
+        Here is your unique account identifier:
+
+        {unique_id}
+
+        Please keep this ID safe. You may need it for:
+        • Account verification
+        • Support requests  
+        • Account recovery
+
+        This is an automated message. Please do not reply to this email.
+        """
+
+        return await self.send_email(
+            to_email=email,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content
+        )
+
     async def send_password_reset_email(
             self,
             email: str,
             reset_url: str,
-            expires_in_minutes: int
+            expires_in_minutes: int = 30
     ) -> bool:
         """Send password reset email with the reset link."""
         subject = "Reset Your Password"
@@ -113,18 +309,32 @@ class EmailService:
             <style>
                 body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
                 .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .button {{ display: inline-block; background: #007bff; color: white; padding: 12px 24px; 
-                         text-decoration: none; border-radius: 4px; margin: 20px 0; }}
+                .button {{ 
+                    display: inline-block; 
+                    background: #dc3545; 
+                    color: white; 
+                    padding: 12px 24px; 
+                    text-decoration: none; 
+                    border-radius: 4px; 
+                    margin: 20px 0; 
+                }}
                 .footer {{ margin-top: 30px; font-size: 12px; color: #666; }}
-                .code {{ background: #f4f4f4; padding: 10px; border-radius: 4px; font-family: monospace; }}
+                .code {{ 
+                    background: #f8f9fa; 
+                    padding: 10px; 
+                    border-radius: 4px; 
+                    font-family: monospace;
+                    word-break: break-all;
+                }}
+                .warning {{ color: #dc3545; font-weight: bold; }}
             </style>
         </head>
         <body>
             <div class="container">
                 <h2>Password Reset Request</h2>
                 <p>You requested to reset your password for your account.</p>
-                <p>Click the button below to reset your password:</p>
 
+                <p>Click the button below to reset your password:</p>
                 <p>
                     <a href="{reset_url}" class="button">Reset Password</a>
                 </p>
@@ -132,7 +342,7 @@ class EmailService:
                 <p>Or copy and paste this link in your browser:</p>
                 <p class="code">{reset_url}</p>
 
-                <p>This reset link will expire in <strong>{expires_in_minutes} minutes</strong>.</p>
+                <p class="warning">This reset link will expire in <strong>{expires_in_minutes} minutes</strong>.</p>
 
                 <div class="footer">
                     <p>If you didn't request this password reset, please ignore this email.</p>
@@ -163,6 +373,78 @@ class EmailService:
             text_content=text_content
         )
 
+    async def send_password_changed_confirmation(
+            self,
+            email: str
+    ) -> bool:
+        """Send confirmation when password is successfully changed."""
+        subject = "Your Password Has Been Changed"
+
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .alert {{ 
+                    background: #d4edda; 
+                    color: #155724; 
+                    padding: 15px; 
+                    border-radius: 4px; 
+                    border: 1px solid #c3e6cb;
+                    margin: 20px 0;
+                }}
+                .warning {{ 
+                    background: #fff3cd; 
+                    color: #856404; 
+                    padding: 15px; 
+                    border-radius: 4px; 
+                    border: 1px solid #ffeaa7;
+                    margin: 20px 0;
+                }}
+                .footer {{ margin-top: 30px; font-size: 12px; color: #666; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h2>Password Changed Successfully</h2>
+
+                <div class="alert">
+                    <p>Your password has been successfully updated.</p>
+                </div>
+
+                <div class="warning">
+                    <p><strong>Security Notice:</strong></p>
+                    <p>If you did not make this change, please contact our support team immediately.</p>
+                </div>
+
+                <div class="footer">
+                    <p>This is an automated security notification.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        text_content = f"""
+        Password Changed Successfully
+
+        Your password has been successfully updated.
+
+        Security Notice:
+        If you did not make this change, please contact our support team immediately.
+
+        This is an automated security notification.
+        """
+
+        return await self.send_email(
+            to_email=email,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content
+        )
+
 
 # Global instance
 email_service = EmailService()
@@ -173,5 +455,48 @@ async def send_email(to_email: str, subject: str, html_content: str = None, text
     return await email_service.send_email(to_email, subject, html_content, text_content)
 
 
-async def send_password_reset_email(email: str, reset_url: str, expires_in_minutes: int):
+async def send_verification_code_email(email: str, verification_code: str, expires_in_minutes: int = 10):
+    return await email_service.send_verification_code_email(email, verification_code, expires_in_minutes)
+
+
+async def send_welcome_email(email: str, user_name: str = None):
+    return await email_service.send_welcome_email(email, user_name)
+
+
+async def send_unique_id_email(email: str, unique_id: str):
+    return await email_service.send_unique_id_email(email, unique_id)
+
+
+async def send_password_reset_email(email: str, reset_url: str, expires_in_minutes: int = 30):
     return await email_service.send_password_reset_email(email, reset_url, expires_in_minutes)
+
+
+async def send_password_changed_confirmation(email: str):
+    return await email_service.send_password_changed_confirmation(email)
+
+
+# Legacy functions for backward compatibility
+async def send_verification_to_email(user, code_record):
+    """
+    Legacy function - now actually sends email instead of just logging
+    """
+    email = getattr(user, "email", user)
+    code = getattr(code_record, "code", code_record)
+
+    # Actually send the email now
+    await send_verification_code_email(email, code)
+    logger.info(f"📧 Sent verification code '{code}' to {email}")
+    return {"email": email, "code": code, "status": "sent"}
+
+
+async def send_unique_id_to_email(user, unique_d):
+    """
+    Legacy function - now actually sends email instead of just logging
+    """
+    email = getattr(user, "email", user)
+    unique_d = getattr(unique_d, "unique_d", unique_d)
+
+    # Actually send the email now
+    await send_unique_id_email(email, unique_d)
+    logger.info(f"📧 Sent unique_id '{unique_d}' to {email}")
+    return {"email": email, "unique_id": unique_d, "status": "sent"}
