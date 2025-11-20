@@ -8,7 +8,6 @@ from app.core.generator import GeneratorManager
 class VerificationCodeCrud(CrudBase[VerificationCode]):
     def __init__(self):
         super().__init__(VerificationCode)
-        print("[DEBUG] VerificationCodeCrud initialized")
 
     async def create_verification_code(self, user_id: str):
         """Create a verification code that expires in 10 minutes."""
@@ -50,7 +49,6 @@ class VerificationCodeCrud(CrudBase[VerificationCode]):
         if datetime.now(timezone.utc) > record.expires_at:
             await self.delete_verification_code(user_id)
             Exceptions.bad_request("Verification code has expired")
-        # --- ✅ End snippet ---
 
         # Check if code matches
         if record.code != code:

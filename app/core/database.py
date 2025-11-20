@@ -3,7 +3,9 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from beanie import init_beanie
 from app.core.settings import settings
 from app.models.user_models import User, VerificationCode, RefreshedToken, UserProfile, PhoneNumber, \
-    UserPreferences
+    UserPreferences, PasswordResetToken
+from app.models.zawiya_models import (Zawiya, ZawiyaProfile, ZawiyaAddress,
+                                      ZawiyaAnalytics, ZawiyaAdmins, ZawiyaSubscription)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -35,7 +37,15 @@ class Database:
                         PhoneNumber,
                         UserPreferences,
                         VerificationCode,
-                        RefreshedToken],
+                        RefreshedToken,
+                        PasswordResetToken,
+                        Zawiya,
+                        ZawiyaProfile,
+                        ZawiyaAddress,
+                        ZawiyaAnalytics,
+                        ZawiyaAdmins,
+                        ZawiyaSubscription
+                    ],
                 )
 
             except Exception as e:

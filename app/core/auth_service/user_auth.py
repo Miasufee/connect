@@ -1,4 +1,4 @@
-from app.core.email_service import send_verification_to_email
+from app.core.email_service import email_service
 from app.core.response.exceptions import Exceptions
 from app.core.response.success import Success
 from app.core.token_manager import TokenManager
@@ -14,7 +14,7 @@ async def user_create_service(user_data: UserCreate):
         raise Exceptions.email_exist()
     new_user = await user_crud.create(email=user_data.email)
     code_record = await verification_code_crud.create_verification_code(str(new_user.id))
-    await send_verification_to_email(new_user, code_record)
+    await email_service.send_verification_to_email(new_user, code_record)
     user_response = UserResponse.model_validate(new_user.model_dump())
     return Success.account_created(user=user_response)
 
@@ -41,6 +41,6 @@ async def user_login_service(user_data: UserLogin):
         )
     # If no verification code provided, send a new one
     code_record = await verification_code_crud.create_verification_code(str(db_user.id))
-    await send_verification_to_email(db_user, code_record)
+    await email_service.send_verification_to_email(db_user, code_record)
     return Success.ok(f"Verification code sent to {db_user.email}")
 

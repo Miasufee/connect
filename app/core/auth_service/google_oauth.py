@@ -104,8 +104,8 @@ class GoogleOAuth:
 
         # Return plain dict with serialized user
         return {
-            "access": access,
-            "refresh": refresh,
+            "access_token": access,
+            "refresh_token": refresh,
             "user": serialize_value(user)
         }
 

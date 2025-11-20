@@ -1,4 +1,3 @@
-# app/crud/user_crud.py
 from datetime import datetime, timezone
 from typing import Optional, List
 from pydantic import EmailStr
@@ -50,28 +49,6 @@ class UserCRUD(CrudBase[User]):
         user = await self.get(user_id)
         if user:
             user.token_version += 1
-            await user.save()
-            return user
-        return None
-
-    async def update_profile(self, user_id: str, profile_data: dict) -> Optional[User]:
-        """Update user profile."""
-        return await self.update(user_id, {"profile": profile_data})
-
-    async def add_phone_number(self, user_id: str, phone_data: dict) -> Optional[User]:
-        """Add a phone number to user."""
-        user = await self.get(user_id)
-        if user:
-            user.phone_numbers.append(phone_data)
-            await user.save()
-            return user
-        return None
-
-    async def add_social_account(self, user_id: str, social_data: dict) -> Optional[User]:
-        """Add a social account to user."""
-        user = await self.get(user_id)
-        if user:
-            user.social_accounts.append(social_data)
             await user.save()
             return user
         return None

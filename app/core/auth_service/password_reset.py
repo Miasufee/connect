@@ -4,7 +4,7 @@ from datetime import timezone
 
 from starlette.responses import JSONResponse
 
-from app.core.email_service import send_password_reset_email
+from app.core.email_service import email_service
 from app.core.generator import GeneratorManager
 from app.core.response.exceptions import Exceptions
 from app.core.response.success import Success
@@ -42,7 +42,7 @@ class PasswordResetService:
         if not user:
             # Security: Don't reveal whether email exists
             logger.warning(f"Password reset attempted for non-existent email: {email}")
-            return Success.ok(message="If the email exists, a reset link has been sent")
+            return Success.ok(message="a reset link has been sent")
 
         # For admin/super users, require additional verification
         if user.user_role in [UserRole.admin, UserRole.super_admin, UserRole.superuser]:
@@ -50,7 +50,7 @@ class PasswordResetService:
 
         if user.unique_id != unique_id:
             logger.warning(f"Password reset attempted for non-existent unique_id: {unique_id}")
-            return Success.ok(message="If the email unique, a reset link has been sent")
+            return Success.ok(message="a reset link has been sent")
 
         try:
             # Revoke any existing tokens for this user
@@ -75,7 +75,7 @@ class PasswordResetService:
             reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}&email={user.email}"
 
             # Send email with reset link
-            await send_password_reset_email(
+            await email_service.send_password_reset_email(
                 email=user.email,
                 reset_url=reset_url,
                 expires_in_minutes=settings.PASSWORD_RESET_MINUTES_EXPIRE
