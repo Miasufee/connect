@@ -5,7 +5,7 @@ from app.core.settings import settings
 from app.models.user_models import User, VerificationCode, RefreshedToken, UserProfile, PhoneNumber, \
     UserPreferences, PasswordResetToken
 from app.models.zawiya_models import (Zawiya, ZawiyaProfile, ZawiyaAddress,
-                                      ZawiyaAnalytics, ZawiyaAdmins, ZawiyaSubscription)
+                                      ZawiyaAnalytics, ZawiyaAdmin, ZawiyaSubscription)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ class Database:
                         ZawiyaProfile,
                         ZawiyaAddress,
                         ZawiyaAnalytics,
-                        ZawiyaAdmins,
+                        ZawiyaAdmin,
                         ZawiyaSubscription
                     ],
                 )

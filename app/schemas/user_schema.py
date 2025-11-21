@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
+from app.models.user_models import UserRole
+
 
 class UserBase(BaseModel):
     email: EmailStr
@@ -50,3 +52,6 @@ class PasswordResetResponse(BaseModel):
     success: bool
     message: str
     data: Optional[dict] = None
+
+class RoleUpdate(UserBase):
+    new_role: UserRole

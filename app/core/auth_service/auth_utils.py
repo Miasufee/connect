@@ -2,6 +2,7 @@ from typing import Optional
 
 from pydantic import EmailStr
 
+from app.core.generator import IDPrefix, GeneratorManager
 from app.core.response.exceptions import Exceptions
 from app.core.response.success import Success
 from app.core.security import SecurityManager
@@ -159,3 +160,83 @@ async def cleanup_tokens():
     return Success.ok(
         message=f"Cleaned up tokens - revoked: {revoked_deleted}, expired: {expired_deleted}"
     )
+
+# -------------------- ROLE MANAGEMENT --------------------
+
+# -------------------- ROLE MANAGEMENT --------------------
+
+async def _validate_role_change_permissions(actor: User, target_user: User, new_role: UserRole):
+    """Validate permissions for role changes between actor and target user."""
+    actor_role = actor.user_role
+    target_role = target_user.user_role
+
+    # SUPERUSER → full control
+    if actor_role == UserRole.superuser:
+        return
+
+    # SUPER_ADMIN → limited control
+    elif actor_role == UserRole.super_admin:
+        # SUPER_ADMIN cannot change SUPER_ADMIN or SUPERUSER
+        if target_role in [UserRole.super_admin, UserRole.superuser]:
+            raise Exceptions.forbidden("SUPER_ADMIN cannot modify SUPER_ADMIN or SUPERUSER")
+
+        # SUPER_ADMIN can only toggle USER <-> ADMIN
+        if new_role not in [UserRole.user, UserRole.admin]:
+            raise Exceptions.forbidden("SUPER_ADMIN can only set USER or ADMIN")
+
+        if target_role not in [UserRole.user, UserRole.admin]:
+            raise Exceptions.forbidden("SUPER_ADMIN cannot change this account")
+
+    # Normal users: forbidden
+    else:
+        raise Exceptions.forbidden("Insufficient permissions to change roles")
+
+
+async def _validate_role_change_business_rules(target_user: User, new_role: UserRole):
+    """Validate business rules for role changes."""
+    target_role = target_user.user_role
+
+    # Prevent downgrading SUPERUSER
+    if target_role == UserRole.superuser and new_role != UserRole.superuser:
+        raise Exceptions.forbidden("Cannot change role of SUPERUSER")
+
+    # Prevent same role change
+    if target_role == new_role:
+        raise Exceptions.already_verified("User already has this role")
+
+
+async def _apply_role_change(user: User, new_role: UserRole):
+    """Apply the role change and update user properties accordingly."""
+    if new_role == UserRole.admin:
+        user.user_role = UserRole.admin
+        user.unique_id = GeneratorManager.generate_id(IDPrefix.ADMIN, 12)
+
+    elif new_role == UserRole.super_admin:
+        user.user_role = UserRole.super_admin
+        user.unique_id = GeneratorManager.generate_id(IDPrefix.SUPER_ADMIN, 12)
+
+    elif new_role == UserRole.user:
+        user.user_role = UserRole.user
+        user.unique_id = None
+
+    await user.save()
+
+
+async def update_role(actor: User, target_email: EmailStr, new_role: UserRole):
+    """Main function to update user roles with proper validation and permissions."""
+    # Validate input
+    db_user = await user_crud.get_by_email(email=target_email)
+    if not db_user:
+        raise Exceptions.not_found("User not found")
+
+    if not isinstance(new_role, UserRole):
+        raise Exceptions.bad_request("Invalid role")
+
+    # Validate permissions and business rules
+    await _validate_role_change_permissions(actor, db_user, new_role)
+    await _validate_role_change_business_rules(db_user, new_role)
+
+    # Apply the role change
+    await _apply_role_change(db_user, new_role)
+
+    return Success.ok(detail="User role update success")

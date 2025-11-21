@@ -29,9 +29,9 @@ class UserCRUD(CrudBase[User]):
         """Get all active users."""
         return await self.get_multi(is_active=True)
 
-    async def get_users_by_role(self, role: str) -> List[User]:
+    async def get_users_by_role(self, user_role: str) -> List[User]:
         """Get users by role."""
-        return await self.get_multi(role=role)
+        return await self.get_multi(user_role=user_role)
 
     async def verify_email(self, user_id: str) -> Optional[User]:
         """Mark user's email as verified."""
