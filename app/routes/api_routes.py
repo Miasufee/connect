@@ -5,6 +5,11 @@ from app.routes.auth.admin_auth import router as admin_auth_router
 from app.routes.auth.logout_router import router as logout_router
 from app.routes.auth.password_reset import router as password_reset_router
 from app.routes.auth.role_management import router as role_management_router
+from app.routes.zawiya.zawiya_toutes import router as zawiya_routes
+from app.routes.zawiya.zawiya_admin_routes import router as zawiya_admin_router
+from app.routes.zawiya.zawiya_address_routes import router as address_router
+from app.routes.zawiya.zawiya_profile_routes import router as zawiya_profile_router
+from app.routes.zawiya.zawiya_subscription_routes import router as zawiya_subscription_router
 
 api_router = APIRouter()
 
@@ -14,3 +19,8 @@ api_router.include_router(admin_auth_router, tags=["Admin Auth"])
 api_router.include_router(logout_router, tags=["Logout"])
 api_router.include_router(password_reset_router, tags=["Password Reset"])
 api_router.include_router(role_management_router, tags=["Role Management"])
+api_router.include_router(zawiya_routes, tags=["zawiya"])
+api_router.include_router(zawiya_admin_router, tags=["admin-management"])
+api_router.include_router(address_router, tags=["address routes"])
+api_router.include_router(zawiya_profile_router, tags=["zawiya profile router"])
+api_router.include_router(zawiya_subscription_router, tags=["zawiya subscription "])

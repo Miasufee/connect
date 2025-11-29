@@ -29,6 +29,13 @@ async def _super_user(request: Request) -> User:
         raise Exceptions.permission_denied()
     return user
 
+async def _elevated_user_(request: Request) -> User:
+    """Admin User or Super Admin can access (for role management)"""
+    user = await security_manager.get_current_user(request)
+    if user.user_role not in [UserRole.admin, UserRole.super_admin]:
+        raise Exceptions.permission_denied()
+    return user
+
 async def _elevated_user(request: Request) -> User:
     """Super User or Super Admin can access (for role management)"""
     user = await security_manager.get_current_user(request)
@@ -42,4 +49,5 @@ RegularUser: TypeAlias = Annotated[User, Depends(_current_user)]
 AdminUser: TypeAlias = Annotated[User, Depends(_admin_user)]
 SuperAdminUser: TypeAlias = Annotated[User, Depends(_super_admin_user)]
 SuperUser: TypeAlias = Annotated[User, Depends(_super_user)]
-ElevatedUser: TypeAlias = Annotated[User, Depends(_elevated_user)]  # Better name
+AdminSuperAdmin: TypeAlias = Annotated[User, Depends(_elevated_user_)]
+ElevatedUser: TypeAlias = Annotated[User, Depends(_elevated_user)]

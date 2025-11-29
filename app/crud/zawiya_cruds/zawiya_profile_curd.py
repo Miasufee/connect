@@ -31,3 +31,8 @@ class ZawiyaProfileCrud(CrudBase[ZawiyaProfile]):
 
     async def get_profile(self, zawiya_id: PydanticObjectId):
         return await self.get_one(zawiya_id=zawiya_id)
+
+    async def delete_zawiya_profile(self, zawiya_id: PydanticObjectId):
+        return await self.delete_by_filter(zawiya_id=zawiya_id)
+
+zawiya_profile_crud = ZawiyaProfileCrud()

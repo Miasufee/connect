@@ -42,3 +42,8 @@ class ZawiyaSubscriptionCrud(CrudBase[ZawiyaSubscription]):
 
     async def is_subscribed(self, user_id: PydanticObjectId, zawiya_id: PydanticObjectId):
         return await self.get_one(user_id=user_id, zawiya_id=zawiya_id)
+
+    async def total_subscribers(self, zawiya_id: PydanticObjectId):
+        return await self.count(zawiya_id=zawiya_id)
+
+zawiya_subscription_crud = ZawiyaSubscriptionCrud()

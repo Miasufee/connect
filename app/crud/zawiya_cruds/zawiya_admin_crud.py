@@ -143,3 +143,5 @@ class ZawiyaAdminCRUD(CrudBase[ZawiyaAdmin]):
             ZawiyaAdmin.zawiya_id == zawiya_id,
             ZawiyaAdmin.is_deleted == False
         ).to_list()
+
+zawiya_admin_crud = ZawiyaAdminCRUD()

@@ -37,7 +37,7 @@ class Zawiya(Document, TimestampMixin, SoftDeleteMixin):
     is_verified: bool = False
 
     owner_id: PydanticObjectId
-    created_by: PydanticObjectId
+    verified_by: Optional[PydanticObjectId] = None
 
     class Settings:
         name = "zawiya"
@@ -46,7 +46,7 @@ class Zawiya(Document, TimestampMixin, SoftDeleteMixin):
             "name",
             "is_verified",
             "owner_id",
-            "created_by",
+            "verified_by",
         ]
 
 
@@ -64,7 +64,6 @@ class ZawiyaProfile(Document, TimestampMixin, SoftDeleteMixin):
 # --------------------- ADDRESS ---------------------
 class ZawiyaAddress(Document, TimestampMixin, SoftDeleteMixin):
     zawiya_id: PydanticObjectId
-
     country: str = Field(..., min_length=3, max_length=255)
     state: str = Field(..., min_length=3, max_length=255)
     city: str = Field(..., min_length=3, max_length=255)
@@ -97,7 +96,6 @@ class ZawiyaSubscription(Document, TimestampMixin, SoftDeleteMixin):
     user_id: PydanticObjectId
     zawiya_id: PydanticObjectId
 
-    # New field → YouTube-style notification levels
     notification_level: NotificationLevel = NotificationLevel.PERSONALIZED
 
     class Settings:

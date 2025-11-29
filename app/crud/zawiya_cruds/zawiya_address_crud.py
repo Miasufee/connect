@@ -36,3 +36,5 @@ class ZawiyaAddressCrud(CrudBase[ZawiyaAddress]):
 
     async def get_address(self, zawiya_id: PydanticObjectId):
         return await self.get_one(zawiya_id=zawiya_id)
+
+zawiya_address_crud = ZawiyaAddressCrud()

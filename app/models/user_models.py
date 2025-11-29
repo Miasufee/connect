@@ -5,7 +5,7 @@ from beanie import Document, PydanticObjectId
 from pydantic import Field, EmailStr
 from enum import Enum
 
-from app.models.models_base import TimestampMixin
+from app.models.models_base import TimestampMixin, utc_now
 
 
 # ------------------------------
@@ -107,7 +107,7 @@ class VerificationCode(Document, TimestampMixin):
     """Email/Phone/Password/2FA verification codes."""
     user_id: PydanticObjectId
     code: str = Field(..., max_length=6)
-    expires_at: datetime
+    expires_at: datetime = utc_now()
 
     class Settings:
         name = "verification_codes"

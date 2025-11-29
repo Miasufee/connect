@@ -28,7 +28,7 @@ async def user_login_service(user_data: UserLogin):
     if not db_user.is_email_verified:
         raise Exceptions.not_verified()
     if user_data.verification_code:
-        record = await verification_code_crud.verify_code(str(db_user.id), user_data.verification_code)
+        record = await verification_code_crud.verify_code(db_user.id, user_data.verification_code)
         if not record:
             raise Exceptions.invalid_verification_code()
         await user_crud.update_last_login(db_user.id)
@@ -41,6 +41,6 @@ async def user_login_service(user_data: UserLogin):
         )
     # If no verification code provided, send a new one
     code_record = await verification_code_crud.create_verification_code(str(db_user.id))
-    await email_service.send_verification_to_email(db_user, code_record)
-    return Success.ok(f"Verification code sent to {db_user.email}")
+    #await email_service.send_verification_code_email(db_user, code_record)
+    return Success.ok(f"Verification code sent to {db_user.email} {code_record}")
 

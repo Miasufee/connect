@@ -15,12 +15,12 @@ class Settings(BaseSettings):
     # -----------------------
     # MongoDB
     # -----------------------
-    MONGO_HOST: str = "localhost"
+    MONGO_HOST: str = ""
     MONGO_PORT: int = 27017
     MONGO_USER: str = ""
     MONGO_PASSWORD: str = ""
     MONGO_DB: str = "mia"
-    MONGO_AUTH_SOURCE: str = "admin"
+    MONGO_AUTH_SOURCE: str = ""
     MONGO_URI: str | None = None
 
     # === API Security ===
@@ -31,7 +31,7 @@ class Settings(BaseSettings):
 
     EMAIL_HOST: str = ""
     EMAIL_PORT: int = 587
-    EMAIL_USE_TLS: bool
+    EMAIL_USE_TLS: bool = True
     EMAIL_HOST_USER: str = ""
     EMAIL_HOST_PASSWORD: str = ""
     DEFAULT_FROM_EMAIL: str = ""
@@ -95,7 +95,8 @@ class Settings(BaseSettings):
         if self.MONGO_URI:
             return self.MONGO_URI
         if self.MONGO_USER and self.MONGO_PASSWORD:
-            return f"mongodb://{self.MONGO_USER}:{self.MONGO_PASSWORD}@{self.MONGO_HOST}:{self.MONGO_PORT}/{self.MONGO_DB}?authSource={self.MONGO_AUTH_SOURCE}"
+            return (f"mongodb://{self.MONGO_USER}:{self.MONGO_PASSWORD}@{self.MONGO_HOST}:"
+                    f"{self.MONGO_PORT}/{self.MONGO_DB}?authSource={self.MONGO_AUTH_SOURCE}")
         return f"mongodb://{self.MONGO_HOST}:{self.MONGO_PORT}/{self.MONGO_DB}"
 
     @property

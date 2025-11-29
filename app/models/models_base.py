@@ -1,4 +1,6 @@
-from beanie import before_event, Insert, Replace, SaveChanges
+from typing import Optional
+
+from beanie import before_event, Insert, Replace, SaveChanges, PydanticObjectId
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 
@@ -51,6 +53,22 @@ class TimestampMixin(BaseModel):
     async def update_timestamp(self):
         """Automatically set updated_at before insert, replace, or save"""
         self.updated_at = datetime.now(timezone.utc)
+
+class TitleMixin(BaseModel):
+    """ title mixin """
+    title: str = Field(..., min_length=3, max_length=255)
+
+class DescriptionMixin(BaseModel):
+    """ description mixin"""
+    description: Optional[str] = Field(default="", min_length=10)
+
+class UserIdMixin(BaseModel):
+    """ User id mixin """
+    user_id: PydanticObjectId
+
+class ZawiyaIdMixin(BaseModel):
+    """ Zawiya id Mixin"""
+    zawiya_id: PydanticObjectId
 
 def utc_now():
     """Return timezone-aware UTC datetime"""
