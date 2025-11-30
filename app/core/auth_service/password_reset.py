@@ -4,7 +4,7 @@ from datetime import timezone
 
 from starlette.responses import JSONResponse
 
-from app.core.email_service import email_service
+from app.core.services.email.service import email_service
 from app.core.generator import GeneratorManager
 from app.core.response.exceptions import Exceptions
 from app.core.response.success import Success

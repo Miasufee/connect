@@ -24,7 +24,7 @@ class VerificationCodeCrud(CrudBase[VerificationCode]):
             code=code,
             expires_at=expires_at
         )
-        return result
+        return code
 
     async def get_user_verification_code(self, user_id: str):
         """Retrieve the user's active verification code record."""
