@@ -200,7 +200,7 @@ class SecurityManager:
         payload = SecurityManager.verify_access_token(token)
 
         user_id = payload["sub"]
-        user = await user_crud.get_by_ids(user_id)
+        user = await user_crud.get_user_by_id(user_id)
         if not user or not user.is_active:
             raise Exceptions.permission_denied()
 

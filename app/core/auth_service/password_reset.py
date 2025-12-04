@@ -33,9 +33,14 @@ class PasswordResetService:
             :param email:
             :param unique_id:
         """
+        print(email)
+        print(unique_id)
         # Input validation
-        if not email or unique_id:
+        if not email:
             raise Exceptions.bad_request("Email is required")
+
+        if not unique_id:
+            raise  Exceptions.bad_request("unique requre")
 
         # Get user from database
         user = await user_crud.get_by_email(email)
@@ -43,10 +48,10 @@ class PasswordResetService:
             # Security: Don't reveal whether email exists
             logger.warning(f"Password reset attempted for non-existent email: {email}")
             return Success.ok(message="a reset link has been sent")
-
+        print(user.user_role)
         # For admin/super users, require additional verification
-        if user.user_role in [UserRole.admin, UserRole.super_admin, UserRole.superuser]:
-            raise Exceptions.forbidden("Please use admin password reset flow")
+        if user.user_role not in [UserRole.admin, UserRole.super_admin, UserRole.superuser]:
+            raise Exceptions.forbidden("role missed")
 
         if user.unique_id != unique_id:
             logger.warning(f"Password reset attempted for non-existent unique_id: {unique_id}")
@@ -57,7 +62,7 @@ class PasswordResetService:
             await password_reset_crud.revoke_all_user_tokens(user.email)
 
             # Generate reset token
-            reset_token = await SecurityManager.generate_password_reset_token(str(user.id))
+            reset_token = SecurityManager.generate_password_reset_token(str(user.id))
             expires_at = GeneratorManager.expires_at(settings.PASSWORD_RESET_MINUTES_EXPIRE)
 
             # Ensure expires_at has timezone info
@@ -168,7 +173,7 @@ class PasswordResetService:
 
         # Verify JWT token signature
         try:
-            verified_payload = await SecurityManager.verify_password_reset_token(token)
+            verified_payload = SecurityManager.verify_password_reset_token(token)
             token_user_id = verified_payload.get("sub")
 
             if token_user_id != str(user.id):
@@ -184,7 +189,7 @@ class PasswordResetService:
         try:
             hashed_password = SecurityManager.hash_password(new_password)
             user.hashed_password = hashed_password
-            user.token_version += 1  # Invalidate existing sessions
+            user.token_version += 1
             await user.save()
 
             # Mark token as used

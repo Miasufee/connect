@@ -107,7 +107,7 @@ class VerificationCode(Document, TimestampMixin):
     """Email/Phone/Password/2FA verification codes."""
     user_id: PydanticObjectId
     code: str = Field(..., max_length=6)
-    expires_at: datetime = utc_now()
+    expires_at: datetime = Field(default_factory=utc_now)
 
     class Settings:
         name = "verification_codes"

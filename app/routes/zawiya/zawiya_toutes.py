@@ -13,7 +13,7 @@ async def _create_zawiya(payload: ZawiyaCreate, owner_id: RegularUser = None):
         title=payload.title,
         name=payload.name,
         description=payload.description,
-        owner_id=owner_id
+        owner_id=owner_id.id
     )
 
 @router.post("/verify/",status_code=status.HTTP_201_CREATED)
@@ -21,5 +21,5 @@ async def _verify_zawiya(payload: ZawiyaVerify, verified_by: AdminSuperAdmin = N
     """ Verify zawiya """
     return await zawiya_crud.verify_zawiya(
         zawiya_id=payload.zawiya_id,
-        verified_by=verified_by
+        verified_by=verified_by.id
     )

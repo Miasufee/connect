@@ -71,5 +71,5 @@ class ZawiyaIdMixin(BaseModel):
     zawiya_id: PydanticObjectId
 
 def utc_now():
-    """Return timezone-aware UTC datetime"""
-    return datetime.now().astimezone()
+    return datetime.now(timezone.utc)
+

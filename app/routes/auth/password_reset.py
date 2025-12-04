@@ -9,10 +9,10 @@ async def request_password_reset(request: PasswordResetRequest):
     """
     Step 1: Request password reset - sends email with reset link.
     """
-    return await password_reset_service.request_password_reset(request.email)
+    return await password_reset_service.request_password_reset(request.email, request.unique_id)
 
 @router.post("/password-reset/validate-token", response_model=PasswordResetResponse)
-async def validate_reset_token(request: PasswordResetValidate):
+async def _validate_reset_token(request: PasswordResetValidate):
     """
     Step 2: Validate reset token when user clicks email link.
     """

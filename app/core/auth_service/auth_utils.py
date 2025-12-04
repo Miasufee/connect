@@ -31,7 +31,7 @@ async def get_verification(user_email):
     # Return the code (for testing or sending via email)
     return Success.ok(
         message="Verification code generated successfully",
-        data={"code": code_record.code}
+        verification_code=code_record
     )
 
 

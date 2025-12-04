@@ -10,7 +10,6 @@ class Zawiya(BaseModel):
 
 class ZawiyaCreate(Zawiya):
     description: Optional[str] = None
-    owner_id: PydanticObjectId
 
 class ZawiyaVerify(BaseModel):
     zawiya_id: PydanticObjectId
