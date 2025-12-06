@@ -1,20 +1,9 @@
 from enum import Enum
 
 
-class VideoStatus(str, Enum):
-    Uploading = "Uploading"
-    Processing = "Processing"
-    Complete = "Complete"
-    Error = "Error"
-
-
-class LiveStreamStatus(str, Enum):
-    Waiting = "Waiting"
-    Live = "Live"
-    Ended = "Ended"
-    Cancelled = "Cancelled"
-    Error = "Error"
-
+class VisibilityStatus(str, Enum):
+    PRIVATE = "private"
+    PUBLIC = "public"
 
 class StreamStatus(str, Enum):
     CREATED = "created"
@@ -24,9 +13,19 @@ class StreamStatus(str, Enum):
     READY = "ready"
     ERROR = "error"
 
-
 class RecordingStatus(str, Enum):
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
+    FAILED = "failed"
+
+class VideoVisibility(str, Enum):
+    PRIVATE = "private"
+    UNLISTED = "unlisted"
+    PUBLIC = "public"
+
+class VideoStatus(str, Enum):
+    UPLOADED = "uploaded"
+    PROCESSING = "processing"
+    READY = "ready"
     FAILED = "failed"

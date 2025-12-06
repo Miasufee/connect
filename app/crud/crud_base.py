@@ -181,10 +181,6 @@ class CrudBase(Generic[ModelType]):
 
     # ---------- BATCH ----------
 
-    async def get_by_ids(self, ids: List[Any]) -> List[ModelType]:
-        """Get documents by a list of IDs."""
-        return await self.model.find({"_id": {"$in": ids}}).to_list()
-
         # ------------------- SOFT DELETE -------------------
 
     async def soft_delete(self, obj_id: Any) -> bool:
