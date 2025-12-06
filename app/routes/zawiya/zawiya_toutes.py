@@ -23,3 +23,15 @@ async def _verify_zawiya(payload: ZawiyaVerify, verified_by: AdminSuperAdmin = N
         zawiya_id=payload.zawiya_id,
         verified_by=verified_by.id
     )
+
+@router.get("/get/zawiya/lists/", status_code=status.HTTP_200_OK)
+async def _list_of_zawiya():
+    return await zawiya_crud.get_multi()
+
+@router.get("/get/verified/zawiya/", status_code=status.HTTP_200_OK)
+async def _lists_of_verified_zawiya():
+    return await zawiya_crud.get_multi(filters={"is_verified": True})
+
+@router.get("/get/unverified/zawiya/", status_code=status.HTTP_200_OK)
+async def _lists_of_unverified_zawiya():
+    return await zawiya_crud.get_multi(filters={"is_verified": False})
