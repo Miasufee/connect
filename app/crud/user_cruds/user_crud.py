@@ -3,8 +3,8 @@ from typing import Optional, List, Union
 from pydantic import EmailStr
 from beanie import PydanticObjectId
 
-from .crud_base import CrudBase
-from ..models.user_models import User
+from app.crud.crud_base import CrudBase
+from app.models.user_models import User
 
 
 class UserCRUD(CrudBase[User]):

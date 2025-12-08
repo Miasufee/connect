@@ -8,8 +8,8 @@ from app.core.response.success import Success
 from app.core.security import SecurityManager
 from app.core.token_manager import token_manager
 from app.crud import user_crud
-from app.crud.refreshed_token_crud import refreshed_token_crud
-from app.crud.verification_code_crud import verification_code_crud
+from app.crud.contents_cruds.refreshed_token_crud import refreshed_token_crud
+from app.crud.user_cruds.verification_code_crud import verification_code_crud
 from app.models.user_models import UserRole, User
 
 

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from bson import ObjectId
 
-from .crud_base import CrudBase
+from app.crud.crud_base import CrudBase
 from app.models.user_models import VerificationCode
 from app.core.response.exceptions import Exceptions
 from app.core.generator import GeneratorManager
