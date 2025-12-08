@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.schemas.user_schema import RoleUpdate
+from app.schemas.user.user_auth_schema import RoleUpdate
 from app.core.dependencies import ElevatedUser
 from app.core.auth_service.auth_utils import update_role
 

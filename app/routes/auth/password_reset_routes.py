@@ -1,17 +1,31 @@
-from fastapi import APIRouter
-from app.schemas.user_schema import PasswordResetRequest, PasswordResetResponse, PasswordResetValidate, PasswordResetConfirm
+from fastapi import APIRouter, BackgroundTasks
+from app.schemas.user.user_auth_schema import (
+    PasswordResetRequest,
+    PasswordResetResponse,
+    PasswordResetValidate,
+    PasswordResetConfirm
+)
 from app.core.auth_service.password_reset import password_reset_service
 
 router = APIRouter()
 
+
 @router.post("/password-reset/request", response_model=PasswordResetResponse)
-async def request_password_reset(request: PasswordResetRequest):
+async def request_password_reset(
+    request: PasswordResetRequest,
+    background_tasks: BackgroundTasks
+):
     """
     Step 1: Request password reset - sends email with reset link.
     """
-    return await password_reset_service.request_password_reset(request.email, request.unique_id)
+    return await password_reset_service.request_password_reset(
+        email=request.email,
+        unique_id=request.unique_id,
+        background_tasks=background_tasks
+    )
 
-@router.post("/password-reset/validate-token", response_model=PasswordResetResponse)
+
+@router.post("/password-reset/validate-token")
 async def _validate_reset_token(request: PasswordResetValidate):
     """
     Step 2: Validate reset token when user clicks email link.
@@ -21,7 +35,8 @@ async def _validate_reset_token(request: PasswordResetValidate):
         token=request.token
     )
 
-@router.post("/password-reset/confirm", response_model=PasswordResetResponse)
+
+@router.post("/password-reset/confirm")
 async def confirm_password_reset(request: PasswordResetConfirm):
     """
     Step 3: Process password reset with new password.

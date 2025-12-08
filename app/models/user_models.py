@@ -1,5 +1,4 @@
-import secrets
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 from typing import Optional
 from beanie import Document, PydanticObjectId
 from pydantic import Field, EmailStr
@@ -149,6 +148,7 @@ class PasswordResetToken(Document):
     token: str = Field(..., min_length=1)
     expires_at: datetime
     used: bool = False
+    used_at: Optional[datetime] = None
 
     class Settings:
         name = "password_reset_tokens"

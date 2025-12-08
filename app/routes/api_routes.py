@@ -1,15 +1,16 @@
 from fastapi import APIRouter
-from app.routes.auth.user_management import router as user_management_router
-from app.routes.auth.google_oauth import router as google_oauth_router
-from app.routes.auth.admin_auth import router as admin_auth_router
-from app.routes.auth.logout_router import router as logout_router
-from app.routes.auth.password_reset import router as password_reset_router
-from app.routes.auth.role_management import router as role_management_router
+from app.routes.auth.user_auth_routes import router as user_management_router
+from app.routes.auth.google_oauth_rotes import router as google_oauth_router
+from app.routes.auth.admin_auth_routes import router as admin_auth_router
+from app.routes.auth.logout_routes import router as logout_router
+from app.routes.auth.password_reset_routes import router as password_reset_router
+from app.routes.auth.role_management_routes import router as role_management_router
 from app.routes.zawiya.zawiya_toutes import router as zawiya_routes
 from app.routes.zawiya.zawiya_admin_routes import router as zawiya_admin_router
 from app.routes.zawiya.zawiya_address_routes import router as address_router
 from app.routes.zawiya.zawiya_profile_routes import router as zawiya_profile_router
 from app.routes.zawiya.zawiya_subscription_routes import router as zawiya_subscription_router
+from app.routes.user.superuser_routes import router as superuser_router
 
 api_router = APIRouter()
 
@@ -24,3 +25,4 @@ api_router.include_router(zawiya_admin_router, tags=["admin-management"])
 api_router.include_router(address_router, tags=["address routes"])
 api_router.include_router(zawiya_profile_router, tags=["zawiya profile router"])
 api_router.include_router(zawiya_subscription_router, tags=["zawiya subscription "])
+api_router.include_router(superuser_router, tags=["superuser routes"])

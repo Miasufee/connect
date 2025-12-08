@@ -1,4 +1,7 @@
 from datetime import datetime, timezone
+
+from bson import ObjectId
+
 from .crud_base import CrudBase
 from app.models.user_models import VerificationCode
 from app.core.response.exceptions import Exceptions
@@ -11,10 +14,9 @@ class VerificationCodeCrud(CrudBase[VerificationCode]):
 
     async def create_verification_code(self, user_id: str):
         """Create a verification code that expires in 10 minutes."""
-        # --- ✅ Delete old code if it exists ---
         existing_record = await super().get_one(user_id=user_id)
         if existing_record:
-            await super().delete_by_filter(user_id=user_id)
+            await super().delete_by_filter(user_id=ObjectId(user_id))
 
         # --- ✅ Generate new code ---
         code = GeneratorManager.generate_digits_code(6)

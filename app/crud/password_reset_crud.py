@@ -12,6 +12,7 @@ class PasswordResetCRUD(CrudBase[PasswordResetToken]):
 
     async def create_token(self, email: str, token: str, expires_at: datetime) -> PasswordResetToken:
         """Create a new password reset token entry."""
+        await self.revoke_all_user_tokens(email)
         # Ensure expires_at has timezone info
         if expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
@@ -72,7 +73,7 @@ class PasswordResetCRUD(CrudBase[PasswordResetToken]):
         active_tokens = await self.get_multi(
             filters={
                 "email": email,
-                "used": False
+                "used": True
             }
         )
 

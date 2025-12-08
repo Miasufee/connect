@@ -1,7 +1,97 @@
+# import logging
+# from datetime import timezone
+# from fastapi import BackgroundTasks
+#
+# from starlette.responses import JSONResponse
+#
+# from app.core.services.email.service import email_service
+# from app.core.generator import GeneratorManager
+# from app.core.response.exceptions import Exceptions
+# from app.core.response.success import Success
+# from app.core.security import SecurityManager
+# from app.core.settings import settings
+# from app.crud import user_crud
+# from app.crud.password_reset_crud import password_reset_crud
+# from app.models.user_models import UserRole
+#
+# logger = logging.getLogger(__name__)
+#
+#
+# class PasswordResetService:
+#     """Handles complete password reset flow - backend only."""
+#
+#     @staticmethod
+#     async def request_password_reset(email: str, unique_id: str) -> JSONResponse:
+#         """
+#         Step 1: User requests password reset - send email with token.
+#
+#         Args:
+#             email: User's email address
+#
+#         Returns:
+#             Success response
+#             :param email:
+#             :param unique_id:
+#         """
+#         # Input validation
+#         if not email:
+#             raise Exceptions.bad_request("Email is required")
+#
+#         if not unique_id:
+#             raise  Exceptions.bad_request("unique requre")
+#
+#         # Get user from database
+#         user = await user_crud.get_by_email(email)
+#         if not user:
+#             # Security: Don't reveal whether email exists
+#             logger.warning(f"Password reset attempted for non-existent email: {email}")
+#             return Success.ok(message="a reset link has been sent")
+#         print(user.user_role)
+#         # For admin/super users, require additional verification
+#         if user.user_role not in [UserRole.admin, UserRole.super_admin, UserRole.superuser]:
+#             raise Exceptions.forbidden("role missed")
+#
+#         if user.unique_id != unique_id:
+#             logger.warning(f"Password reset attempted for non-existent unique_id: {unique_id}")
+#             return Success.ok(message="a reset link has been sent")
+#
+#         try:
+#             # Revoke any existing tokens for this user
+#             await password_reset_crud.revoke_all_user_tokens(user.email)
+#             # Generate reset token
+#             reset_token = SecurityManager.generate_password_reset_token(str(user.id))
+#             expires_at = GeneratorManager.expires_at(settings.PASSWORD_RESET_MINUTES_EXPIRE)
+#             # Ensure expires_at has timezone info
+#             if expires_at.tzinfo is None:
+#                 expires_at = expires_at.replace(tzinfo=timezone.utc)
+#
+#             # Store token in database
+#             await password_reset_crud.create_token(
+#                 email=user.email,
+#                 token=reset_token,
+#                 expires_at=expires_at
+#             )
+#
+#             # Generate reset URL for email (frontend URL)
+#             reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}&email={user.email}"
+#
+#             # Send email with reset link
+#             background_tasks.add_task(
+#                 email_service.send_password_reset_email,
+#                 email=request.email,
+#                 reset_url=reset_url,
+#                 expires_in_minutes=expires
+#             )
+#
+#             logger.info(f"Password reset email sent to: {email}")
+#             return Success.ok(message="If the email exists, a reset link has been sent")
+#
+#         except Exception as e:
+#             logger.error(f"Error generating password reset token for {email}: {e}")
+#             raise Exceptions.internal_server_error("Could not process password reset request")
 import logging
 from datetime import timezone
-
-
+from fastapi import BackgroundTasks
 from starlette.responses import JSONResponse
 
 from app.core.services.email.service import email_service
@@ -21,72 +111,62 @@ class PasswordResetService:
     """Handles complete password reset flow - backend only."""
 
     @staticmethod
-    async def request_password_reset(email: str, unique_id: str) -> JSONResponse:
+    async def request_password_reset(
+        email: str, unique_id: str, background_tasks: BackgroundTasks
+    ) -> JSONResponse:
         """
         Step 1: User requests password reset - send email with token.
 
         Args:
             email: User's email address
-
-        Returns:
-            Success response
-            :param email:
-            :param unique_id:
+            background_tasks: FastAPI BackgroundTasks instance
         """
-        print(email)
-        print(unique_id)
-        # Input validation
         if not email:
             raise Exceptions.bad_request("Email is required")
-
         if not unique_id:
-            raise  Exceptions.bad_request("unique requre")
+            raise Exceptions.bad_request("Unique ID is required")
 
-        # Get user from database
         user = await user_crud.get_by_email(email)
         if not user:
             # Security: Don't reveal whether email exists
             logger.warning(f"Password reset attempted for non-existent email: {email}")
-            return Success.ok(message="a reset link has been sent")
-        print(user.user_role)
-        # For admin/super users, require additional verification
+            return Success.ok(message="If the email exists, a reset link has been sent")
+
         if user.user_role not in [UserRole.admin, UserRole.super_admin, UserRole.superuser]:
-            raise Exceptions.forbidden("role missed")
+            raise Exceptions.forbidden("Role not allowed")
 
         if user.unique_id != unique_id:
-            logger.warning(f"Password reset attempted for non-existent unique_id: {unique_id}")
-            return Success.ok(message="a reset link has been sent")
+            logger.warning(f"Password reset attempted for invalid unique_id: {unique_id}")
+            return Success.ok(message="If the email exists, a reset link has been sent")
 
         try:
-            # Revoke any existing tokens for this user
+            # Revoke any existing tokens
             await password_reset_crud.revoke_all_user_tokens(user.email)
 
-            # Generate reset token
+            # Generate token
             reset_token = SecurityManager.generate_password_reset_token(str(user.id))
             expires_at = GeneratorManager.expires_at(settings.PASSWORD_RESET_MINUTES_EXPIRE)
-
-            # Ensure expires_at has timezone info
             if expires_at.tzinfo is None:
                 expires_at = expires_at.replace(tzinfo=timezone.utc)
 
-            # Store token in database
+            # Store token
             await password_reset_crud.create_token(
                 email=user.email,
                 token=reset_token,
                 expires_at=expires_at
             )
 
-            # Generate reset URL for email (frontend URL)
-            reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}&email={user.email}"
-
-            # Send email with reset link
-            await email_service.send_password_reset_email(
+            # reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}&email={user.email}"
+            reset_url = reset_token
+            # Schedule background email
+            background_tasks.add_task(
+                email_service.send_password_reset_email,
                 email=user.email,
                 reset_url=reset_url,
                 expires_in_minutes=settings.PASSWORD_RESET_MINUTES_EXPIRE
             )
 
-            logger.info(f"Password reset email sent to: {email}")
+            logger.info(f"Password reset scheduled for: {email}")
             return Success.ok(message="If the email exists, a reset link has been sent")
 
         except Exception as e:

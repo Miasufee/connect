@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 from beanie import PydanticObjectId
 from ..crud_base import CrudBase

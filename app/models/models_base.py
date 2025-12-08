@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from beanie import before_event, Insert, Replace, SaveChanges, PydanticObjectId
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
@@ -59,3 +57,5 @@ class TimestampMixin(BaseModel):
 def utc_now():
     return datetime.now(timezone.utc)
 
+class UserIdMixin(BaseModel):
+    user_id: PydanticObjectId

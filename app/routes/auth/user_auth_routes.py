@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Body
 import logging
-from app.schemas.user_schema import UserCreate, UserLogin, VerificationCode
+from app.schemas.user.user_auth_schema import UserCreate, UserLogin, VerificationCode
 from app.core.auth_service.auth_utils import get_verification, verify_email
 from app.core.auth_service.user_auth import user_create_service, user_login_service
 

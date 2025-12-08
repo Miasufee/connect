@@ -63,7 +63,7 @@ app.add_middleware(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ALLOWED_ORIGINS,
-    allow_credentials=True,  # This is IMPORTANT for sessions
+    allow_credentials=True,
     allow_methods=settings.CORS_ALLOWED_METHODS,
     allow_headers=settings.CORS_ALLOWED_HEADERS,
     expose_headers=settings.CORS_EXPOSE_HEADERS.split(",") if settings.CORS_EXPOSE_HEADERS else [],

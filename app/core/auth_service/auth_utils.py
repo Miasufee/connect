@@ -76,7 +76,8 @@ async def login_superuser_or_admins(email: EmailStr, unique_id: str, password: s
     """
     # 1️⃣ Retrieve user by email
     user = await user_crud.get_by_email(email)
-
+    if not user.is_email_verified:
+        raise Exceptions.not_verified(detail="Email not verified")
     # 2️⃣ Validate credentials
     if (
             not user
@@ -89,7 +90,7 @@ async def login_superuser_or_admins(email: EmailStr, unique_id: str, password: s
         raise Exceptions.forbidden(detail="Invalid credentials")
 
     # 3️⃣ Generate JWT tokens
-    access_token, refresh_token = await token_manager.generate_token_pair(user.email)
+    access_token, refresh_token = await token_manager.generate_token_pair(user)
 
     # 4️⃣ Optional: update last login
     await user_crud.update_last_login(str(user.id))
