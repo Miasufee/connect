@@ -7,7 +7,7 @@ from fastapi import APIRouter
 
 from app.core.dependencies import RegularUser
 from app.crud import user_phone_number_crud
-from app.schemas.user_schema import PhoneNumberResponse, PhoneNumberCreate, PhoneVerificationRequest, PhoneNumberUpdate
+from app.schemas.user.phone_number_schema import PhoneNumberResponse, PhoneNumberCreate, PhoneNumberUpdate
 
 phone_router = APIRouter(prefix="/phone-numbers", tags=["Phone Numbers"])
 

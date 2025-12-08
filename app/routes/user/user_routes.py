@@ -1,29 +1,8 @@
 
 from fastapi import APIRouter, HTTPException, status, Query
-from beanie import PydanticObjectId
-from typing import List
-from datetime import datetime
 
 from app.core.dependencies import RegularUser
-from app.crud import user_profile_crud, user_phone_number_crud, user_preferences_crud
-from app.schemas.user_schema import (
-    # Profile
-    UserProfileCreate,
-    UserProfileUpdate,
-    UserProfileResponse,
-    # Phone
-    PhoneNumberCreate,
-    PhoneNumberUpdate,
-    PhoneNumberResponse,
-    PhoneVerificationRequest,
-    # Preferences
-    UserPreferencesCreate,
-    UserPreferencesUpdate,
-    UserPreferencesResponse,
-    # Pagination
-    PaginatedResponse
-)
-
+from app.crud import user_profile_crud, user_phone_number_crud
 
 
 

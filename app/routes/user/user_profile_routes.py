@@ -5,7 +5,7 @@ from fastapi import APIRouter
 
 from app.core.dependencies import RegularUser
 from app.crud import user_profile_crud
-from app.schemas.user_schema import (
+from app.schemas.user.user_profile_schema import (
     # Profile
     UserProfileCreate,
     UserProfileUpdate,
