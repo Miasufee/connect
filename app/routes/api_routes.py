@@ -11,6 +11,7 @@ from app.routes.zawiya.zawiya_address_routes import router as address_router
 from app.routes.zawiya.zawiya_profile_routes import router as zawiya_profile_router
 from app.routes.zawiya.zawiya_subscription_routes import router as zawiya_subscription_router
 from app.routes.user.superuser_routes import router as superuser_router
+from .auth.refreshd_routes import refresh_router
 from .user.user_profile_routes import profile_router
 from .user.phone_number_routes import phone_router
 from .user.user_prefrences import preferences_router
@@ -32,3 +33,4 @@ api_router.include_router(superuser_router, tags=["superuser routes"])
 api_router.include_router(profile_router)
 api_router.include_router(phone_router)
 api_router.include_router(preferences_router)
+api_router.include_router(refresh_router)

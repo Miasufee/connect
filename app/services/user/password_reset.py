@@ -1,9 +1,7 @@
 import logging
 from datetime import timezone
-from fastapi import BackgroundTasks
 from starlette.responses import JSONResponse
 
-from app.core.services.email.service import email_service
 from app.core.generator import GeneratorManager
 from app.core.response.exceptions import Exceptions
 from app.core.response.success import Success
@@ -21,7 +19,7 @@ class PasswordResetService:
 
     @staticmethod
     async def request_password_reset(
-        email: str, unique_id: str, background_tasks: BackgroundTasks
+        email: str, unique_id: str
     ) -> JSONResponse:
         """
         Step 1: User requests password reset - send email with token.
@@ -29,6 +27,8 @@ class PasswordResetService:
         Args:
             email: User's email address
             background_tasks: FastAPI BackgroundTasks instance
+            :param email:
+            :param unique_id:
         """
         if not email:
             raise Exceptions.bad_request("Email is required")
@@ -65,15 +65,7 @@ class PasswordResetService:
                 expires_at=expires_at
             )
 
-            # reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}&email={user.email}"
-            reset_url = reset_token
-            # Schedule background email
-            background_tasks.add_task(
-                email_service.send_password_reset_email,
-                email=user.email,
-                reset_url=reset_url,
-                expires_in_minutes=settings.PASSWORD_RESET_MINUTES_EXPIRE
-            )
+            reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}&email={user.email}"
 
             logger.info(f"Password reset scheduled for: {email}")
             return Success.ok(message="If the email exists, a reset link has been sent")

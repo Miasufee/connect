@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from app.core.auth_service.google_oauth import google_oauth
+from app.services.user.google_oauth import google_oauth
 
 router = APIRouter()
 

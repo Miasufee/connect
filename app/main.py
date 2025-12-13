@@ -4,7 +4,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from contextlib import asynccontextmanager
 import logging
 
-from app.core.auth_service.superuser_auth import superuser_create
+from app.services.user.superuser_auth import superuser_create
 from app.core.exception_handlers import setup_exception_handlers
 from app.core.settings import settings
 from app.core.database import mongodb

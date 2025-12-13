@@ -1,6 +1,15 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from pydantic_settings import BaseSettings
+
+@dataclass
+class TokenConfig:
+    secret: str
+    algorithm: str
+    expire_seconds: int
+    allow_login: bool = False
 
 
 class Settings(BaseSettings):
@@ -111,6 +120,35 @@ class Settings(BaseSettings):
             return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
 
+    @property
+    def DEFAULT_TOKEN_CONFIGS(self) -> dict:
+        """Centralized per-token security settings."""
+        return {
+            "access": TokenConfig(
+                secret=self.JWT_SECRET_KEY,
+                algorithm=self.JWT_ALGORITHM,
+                expire_seconds=self.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+                allow_login=True,
+            ),
+            "refresh": TokenConfig(
+                secret=self.JWT_SECRET_KEY,
+                algorithm=self.JWT_ALGORITHM,
+                expire_seconds=self.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
+                allow_login=False,
+            ),
+            "password_reset": TokenConfig(
+                secret=self.PASSWORD_RESET_SECRET_KEY,
+                algorithm=self.PASSWORD_RESET_ALGORITHM,
+                expire_seconds=self.PASSWORD_RESET_MINUTES_EXPIRE * 60,
+                allow_login=False,
+            ),
+            "email_verification": TokenConfig(
+                secret=self.JWT_SECRET_KEY,
+                algorithm=self.JWT_ALGORITHM,
+                expire_seconds=24 * 3600,
+                allow_login=False,
+            ),
+        }
 
 # Instantiate settings
 settings = Settings()

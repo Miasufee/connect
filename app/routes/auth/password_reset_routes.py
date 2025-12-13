@@ -1,11 +1,11 @@
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter
 from app.schemas.user.user_auth_schema import (
     PasswordResetRequest,
     PasswordResetResponse,
     PasswordResetValidate,
     PasswordResetConfirm
 )
-from app.core.auth_service.password_reset import password_reset_service
+from app.services.user.password_reset import password_reset_service
 
 router = APIRouter()
 
@@ -13,7 +13,6 @@ router = APIRouter()
 @router.post("/password-reset/request", response_model=PasswordResetResponse)
 async def request_password_reset(
     request: PasswordResetRequest,
-    background_tasks: BackgroundTasks
 ):
     """
     Step 1: Request password reset - sends email with reset link.
@@ -21,7 +20,6 @@ async def request_password_reset(
     return await password_reset_service.request_password_reset(
         email=request.email,
         unique_id=request.unique_id,
-        background_tasks=background_tasks
     )
 
 

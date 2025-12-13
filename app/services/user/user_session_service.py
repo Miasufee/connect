@@ -1,7 +1,5 @@
 from datetime import datetime, timedelta, timezone
 from typing import Tuple, Optional
-
-from app.core.response.exceptions import Exceptions
 from app.models.user_models import User, RefreshedToken
 from app.crud.contents_cruds.refreshed_token_crud import refreshed_token_crud
 from app.core.settings import settings
@@ -50,13 +48,13 @@ class TokenManager:
     async def _verify_refresh_token(refresh_token: str) -> Optional[RefreshedToken]:
         """Validate refresh token and return token record if valid."""
         try:
-            _ = SecurityManager.verify_refresh_token(refresh_token)
+            payload = SecurityManager.verify_refresh_token(refresh_token)
             token_record = await refreshed_token_crud.get_valid_token(refresh_token)
             if not token_record or token_record.expires_at < datetime.now(timezone.utc):
                 await refreshed_token_crud.revoke_token(refresh_token)
                 return None
             return token_record
-        except Exceptions.forbidden():
+        except Exception:
             return None
 
     # -----------------------
@@ -120,5 +118,3 @@ class TokenManager:
         revoked = await refreshed_token_crud.purge_revoked_tokens(older_than_days=30)
         expired = await refreshed_token_crud.cleanup_expired_tokens(older_than_days=7)
         return revoked, expired
-
-token_manager = TokenManager()
