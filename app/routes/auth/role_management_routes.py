@@ -10,4 +10,4 @@ async def update_user_roles(payload: RoleUpdate, actor: ElevatedUser):
     """
     Update user roles - accessible to both SuperUser and SuperAdmin
     """
-    return await role_service(actor, payload.email, payload.new_role)
+    return await role_service.update_role(actor, payload.email, payload.new_role)

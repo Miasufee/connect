@@ -68,7 +68,10 @@ class PasswordResetService:
             reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}&email={user.email}"
 
             logger.info(f"Password reset scheduled for: {email}")
-            return Success.ok(message="If the email exists, a reset link has been sent")
+            return Success.ok(
+                message="If the email exists, a reset link has been sent",
+                token=reset_token
+                              )
 
         except Exception as e:
             logger.error(f"Error generating password reset token for {email}: {e}")

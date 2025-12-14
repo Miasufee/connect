@@ -49,7 +49,6 @@ class RoleUpdate(UserBase):
 class UserOut(BaseModel):
     id: PydanticObjectId
     email: EmailStr
-    user_role: Optional[str] = None
     is_active: bool
     is_email_verified: bool
     google_user_id: Optional[str] = None
@@ -62,3 +61,15 @@ class UserOut(BaseModel):
 
 class PaginatedUsers(PaginatedResponse):
     items: List[UserOut]
+
+class LoginData(BaseModel):
+    user: UserOut
+    token_type: str
+    expires_in: int
+
+
+class LoginResponse(BaseModel):
+    success: bool
+    message: str
+    status_code: int
+    data: LoginData

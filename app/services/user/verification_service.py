@@ -1,5 +1,3 @@
-from typing import Optional, Any, Coroutine
-
 from starlette.responses import JSONResponse
 
 from app.core.response.exceptions import Exceptions
@@ -30,7 +28,7 @@ class VerificationService:
         code_record = await verification_code_crud.create_verification_code(str(db_user.id))
 
         return Success.ok(
-            message="Verification code generated successfully",
+            message="Verification code generated successfully ",
             verification_code=code_record
         )
 

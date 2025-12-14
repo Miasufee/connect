@@ -7,13 +7,14 @@ from app.core.response.exceptions import Exceptions
 from app.core.response.success import Success
 from app.crud import user_crud
 from app.models.user_models import UserRole
+from app.schemas.user.user_auth_schema import UserOut
 
 
 class AdminAuthService:
     """Handles login for superuser, super_admin, and admin users."""
 
     @staticmethod
-    async def login(email: EmailStr, unique_id: str, password: str) -> JSONResponse:
+    async def login(email: EmailStr, unique_id: str, password: str):
         """
         Login flow for superuser, super_admin, or admin.
 
@@ -40,7 +41,8 @@ class AdminAuthService:
 
         access_token, refresh_token = await token_manager.generate_token_pair(user)
         await user_crud.update_last_login(str(user.id))
-        return Success.login_success(access_token, refresh_token, user)
+        user_dict = UserOut.model_validate(user).model_dump()
+        return Success.login_success(access_token, refresh_token, user=user_dict)
 
 
 admin_auth_service = AdminAuthService()

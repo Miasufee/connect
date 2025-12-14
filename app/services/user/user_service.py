@@ -27,12 +27,12 @@ class UserService:
             raise Exceptions.email_exist()
 
         new_user = await user_crud.create(email=user_data.email)
-
+        user_result = UserOut.model_validate(new_user).model_dump()
         # Generate verification code and send email
         _ = await verification_code_crud.create_verification_code(str(new_user.id))
 
         user_response = UserOut.model_validate(new_user.model_dump())
-        return Success.account_created(user=user_response)
+        return Success.account_created(user=user_result)
 
     @staticmethod
     async def login_user(user_data: UserLogin) -> JSONResponse:

@@ -1,10 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from beanie import Document, PydanticObjectId
-from pydantic import Field, EmailStr
+from pydantic import Field, EmailStr, field_validator
 from enum import Enum
 
-from app.models.models_base import TimestampMixin, utc_now
+from pymongo import IndexModel
+
+from app.models.models_base import TimestampMixin
 
 
 # ------------------------------
@@ -102,18 +104,24 @@ class UserPreferences(Document, TimestampMixin):
 # Verification Codes
 # ------------------------------
 
+
+
 class VerificationCode(Document, TimestampMixin):
-    """Email/Phone/Password/2FA verification codes."""
     user_id: PydanticObjectId
     code: str = Field(..., max_length=6)
-    expires_at: datetime = Field(default_factory=utc_now)
+    expires_at: datetime
+
+    @field_validator("expires_at", mode="before")
+    @classmethod
+    def ensure_utc(cls, value: datetime) -> datetime:
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
 
     class Settings:
         name = "verification_codes"
         indexes = [
-            "user_id",
-            "expires_at",
-            [("created_at", 1)],
+            IndexModel([("expires_at", 1)], expireAfterSeconds=0)
         ]
 
 

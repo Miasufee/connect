@@ -3,7 +3,7 @@ from starlette.responses import RedirectResponse
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from authlib.integrations.starlette_client import OAuth
 
-from app.core.response.success import Success, serialize_value
+from app.core.response.success import Success, prepare_json_data
 from app.core.settings import settings
 from app.core.token_manager import TokenManager
 from app.crud import user_crud
@@ -106,7 +106,7 @@ class GoogleOAuth:
         return {
             "access_token": access,
             "refresh_token": refresh,
-            "user": serialize_value(user)
+            "user": prepare_json_data(user)
         }
 
     @staticmethod
@@ -116,7 +116,7 @@ class GoogleOAuth:
         Handles datetime, UUID, enums, Pydantic models, ORM objects.
         """
         import base64, json
-        safe_data = serialize_value(data)
+        safe_data = prepare_json_data(data)
         return base64.urlsafe_b64encode(json.dumps(safe_data).encode()).decode()
 
 

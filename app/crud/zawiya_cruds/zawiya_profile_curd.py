@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from beanie import PydanticObjectId
 
 from app.crud import CrudBase

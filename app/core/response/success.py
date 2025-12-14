@@ -3,70 +3,70 @@ from types import MappingProxyType
 from uuid import UUID
 from fastapi import status
 from fastapi.responses import JSONResponse
-from typing import Any, Optional, Dict, List
+from typing import Any, Optional, Dict, List, Union
+from pydantic import BaseModel, ConfigDict
 import enum
-import json
+
+# Handle Beanie's PydanticObjectId if available
+try:
+    from beanie import PydanticObjectId
+
+    BEANIE_AVAILABLE = True
+except ImportError:
+    BEANIE_AVAILABLE = False
+    PydanticObjectId = None
 
 
-# Custom JSON encoder that handles enums and other complex types
-class CustomJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, enum.Enum):
-            return obj.value
-        elif isinstance(obj, datetime):
-            return obj.isoformat()
-        elif isinstance(obj, UUID):
-            return str(obj)
-        elif hasattr(obj, "model_dump"):  # Pydantic v2 models
-            return obj.model_dump()
-        elif hasattr(obj, "dict"):  # Pydantic v1 models
-            return obj.dict()
-        elif hasattr(obj, "__dict__"):  # ORM objects
-            # Convert ORM object to dict, then recursively serialize
-            return {k: self.default(v) if not isinstance(v, (str, int, float, bool, type(None))) else v
-                    for k, v in vars(obj).items() if not k.startswith('_')}
-        return super().default(obj)
-
-
-def serialize_value(value: Any) -> Any:
+def prepare_json_data(value: Any) -> Any:
     """
-    Recursively serialize values for JSON response compatibility.
-    Handles complex types like enums, date times, UUIDs, and Pydantic models.
+    Recursively prepare values for JSON serialization.
+    Converts complex types (enums, datetimes, UUIDs, Pydantic models, ORM objects, Beanie ObjectIds)
+    into JSON-compatible primitives.
     """
-    if isinstance(value, enum.Enum):
+    # Handle Beanie PydanticObjectId
+    if BEANIE_AVAILABLE and PydanticObjectId and isinstance(value, PydanticObjectId):
+        return str(value)
+    elif isinstance(value, enum.Enum):
         return value.value
     elif isinstance(value, datetime):
         return value.isoformat()
     elif isinstance(value, UUID):
         return str(value)
     elif isinstance(value, MappingProxyType):
-        return {k: serialize_value(v) for k, v in value.items()}
+        return {k: prepare_json_data(v) for k, v in value.items()}
     elif isinstance(value, dict):
-        return {k: serialize_value(v) for k, v in value.items()}
-    elif isinstance(value, list):
-        return [serialize_value(v) for v in value]
-    elif hasattr(value, "model_dump"):  # Pydantic v2 models
-        return serialize_value(value.model_dump())
+        return {k: prepare_json_data(v) for k, v in value.items()}
+    elif isinstance(value, (list, tuple)):
+        return [prepare_json_data(v) for v in value]
+    elif isinstance(value, BaseModel):
+        # Use model_dump with mode='json' and by_alias=True for proper serialization
+        try:
+            dumped = value.model_dump(mode='json', by_alias=True)
+            # Recursively process the dumped dict to handle nested PydanticObjectIds
+            return prepare_json_data(dumped)
+        except Exception:
+            # Fallback to dict conversion if model_dump fails
+            return prepare_json_data(value.model_dump(by_alias=True))
+    elif hasattr(value, "model_dump"):  # Pydantic v2 models (fallback)
+        return prepare_json_data(value.model_dump(mode='json', by_alias=True))
     elif hasattr(value, "dict"):  # Pydantic v1 models
-        return serialize_value(value.dict())
+        return prepare_json_data(value.dict())
     elif hasattr(value, "__dict__"):  # ORM objects
         # Filter out private attributes and serialize remaining
         obj_dict = {k: v for k, v in vars(value).items() if not k.startswith('_')}
-        return serialize_value(obj_dict)
+        return prepare_json_data(obj_dict)
     return value
 
 
 def create_json_response(content: Any, status_code: int = 200) -> JSONResponse:
     """
     Create a JSONResponse with proper serialization handling.
+    Handles Beanie documents, Pydantic models, and other complex types.
     """
-    # Serialize the content using our custom function
-    serialized_content = serialize_value(content)
+    # Prepare content for JSON serialization
+    serialized_content = prepare_json_data(content)
 
-    # Use custom JSON encoder for additional safety
-    json_content = json.loads(json.dumps(serialized_content, cls=CustomJSONEncoder))
-
-    return JSONResponse(status_code=status_code, content=json_content)
+    return JSONResponse(status_code=status_code, content=serialized_content)
 
 
 def set_token_cookie(response: JSONResponse, token: str, token_type: str, expires_in: int) -> JSONResponse:
@@ -88,10 +88,44 @@ def set_token_cookie(response: JSONResponse, token: str, token_type: str, expire
     return response
 
 
+# ==================== PYDANTIC RESPONSE MODELS ====================
+
+class SuccessResponse(BaseModel):
+    """Base success response model with Pydantic validation"""
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    success: bool = True
+    message: str
+    status_code: int
+    data: Optional[Dict[str, Any]] = None
+
+
+class PaginationMeta(BaseModel):
+    """Pagination metadata model"""
+    total_count: int
+    page: int
+    page_size: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
+
+
+class PaginatedResponse(BaseModel):
+    """Paginated response with validation"""
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    success: bool = True
+    message: str
+    status_code: int
+    data: Dict[str, Any]  # Contains 'items' and 'pagination'
+
+
 class Success:
     """
     Standardized success responses for the API with proper JSON serialization.
     Uses consistent response format: {"success": True, "message": "...", "data": {...}}
+
+    Properly handles Beanie documents, Pydantic models, and complex types.
     """
 
     @staticmethod
@@ -101,22 +135,28 @@ class Success:
             data: Optional[Dict[str, Any]] = None,
             **kwargs
     ) -> JSONResponse:
-        """Base method for all success responses with proper serialization"""
+        """
+        Base method for all success responses.
+        Handles Beanie documents and Pydantic models properly.
+        """
+        # Pre-process data to handle Beanie documents and complex types
+        processed_data = prepare_json_data(data) if data is not None else None
+        processed_kwargs = prepare_json_data(kwargs) if kwargs else {}
+
+        # Create response content
         content = {
             "success": True,
             "message": message,
             "status_code": status_code
         }
 
-        # Add data if provided
-        if data:
-            content["data"] = serialize_value(data)
+        if processed_data is not None:
+            content["data"] = processed_data
 
-        # Add any additional kwargs as top-level fields
-        if kwargs:
-            content.update(serialize_value(kwargs))
+        if processed_kwargs:
+            content.update(processed_kwargs)
 
-        return create_json_response(content, status_code)
+        return JSONResponse(status_code=status_code, content=content)
 
     # ==================== GENERIC RESPONSES ====================
 
@@ -146,29 +186,34 @@ class Success:
     # ==================== USER MANAGEMENT RESPONSES ====================
 
     @staticmethod
-    def account_created(user: Any) -> JSONResponse:
+    def account_created(user: Union[BaseModel, Dict, Any]) -> JSONResponse:
         """Response for successful user account creation"""
+        # prepare_json_data handles Beanie documents automatically
+        user_data = prepare_json_data(user)
+
         return Success.created(
             message="Account created successfully. Please verify your email.",
-            data={"user": user}
+            data={"user": user_data}
         )
 
     @staticmethod
     def login_success(
             access_token: str,
             refresh_token: str,
-            user: Any,
+            user: Union[BaseModel, Dict, Any],
             access_token_expires: int = 30 * 60,  # 30 minutes
             refresh_token_expires: int = 7 * 86400  # 7 days
     ) -> JSONResponse:
         """
         Successful login response with tokens set as HTTP-only cookies.
         """
+        user_data = prepare_json_data(user)
+
         # Create base response
         response = Success.ok(
             message="Login successful",
             data={
-                "user": user,
+                "user": user_data,
                 "token_type": "bearer",
                 "expires_in": access_token_expires
             }
@@ -229,23 +274,27 @@ class Success:
     # ==================== ADMIN RESPONSES ====================
 
     @staticmethod
-    def admin_created(admin: Any) -> JSONResponse:
+    def admin_created(admin: Union[BaseModel, Dict, Any]) -> JSONResponse:
         """Response for successful admin account creation"""
+        admin_data = prepare_json_data(admin)
+
         return Success.created(
             message="Admin account created successfully",
-            data={"admin": admin}
+            data={"admin": admin_data}
         )
 
     @staticmethod
     def admin_login_success(
             access_token: str,
-            admin: Any,
+            admin: Union[BaseModel, Dict, Any],
             access_token_expires: int = 30 * 60
     ) -> JSONResponse:
         """Response for successful admin login"""
+        admin_data = prepare_json_data(admin)
+
         response = Success.ok(
             message="Admin login successful",
-            data={"admin": admin}
+            data={"admin": admin_data}
         )
 
         response = set_token_cookie(
@@ -258,11 +307,13 @@ class Success:
         return response
 
     @staticmethod
-    def user_updated(user: Any) -> JSONResponse:
+    def user_updated(user: Union[BaseModel, Dict, Any]) -> JSONResponse:
         """Response for successful user update by admin"""
+        user_data = prepare_json_data(user)
+
         return Success.ok(
             message="User updated successfully",
-            data={"user": user}
+            data={"user": user_data}
         )
 
     @staticmethod
@@ -303,17 +354,19 @@ class Success:
             data={
                 "subscription_id": subscription_id,
                 "plan": plan,
-                "start_date": start_date,
-                "end_date": end_date
+                "start_date": start_date.isoformat(),
+                "end_date": end_date.isoformat()
             }
         )
 
     @staticmethod
-    def subscription_updated(subscription: Any) -> JSONResponse:
+    def subscription_updated(subscription: Union[BaseModel, Dict, Any]) -> JSONResponse:
         """Response for successful subscription update"""
+        subscription_data = prepare_json_data(subscription)
+
         return Success.ok(
             message="Subscription updated successfully",
-            data={"subscription": subscription}
+            data={"subscription": subscription_data}
         )
 
     @staticmethod
@@ -349,19 +402,23 @@ class Success:
     # ==================== CONTENT RESPONSES ====================
 
     @staticmethod
-    def content_created(content: Any) -> JSONResponse:
+    def content_created(content: Union[BaseModel, Dict, Any]) -> JSONResponse:
         """Response for successful content creation"""
+        content_data = prepare_json_data(content)
+
         return Success.created(
             message="Content created successfully",
-            data={"content": content}
+            data={"content": content_data}
         )
 
     @staticmethod
-    def content_updated(content: Any) -> JSONResponse:
+    def content_updated(content: Union[BaseModel, Dict, Any]) -> JSONResponse:
         """Response for successful content update"""
+        content_data = prepare_json_data(content)
+
         return Success.ok(
             message="Content updated successfully",
-            data={"content": content}
+            data={"content": content_data}
         )
 
     @staticmethod
@@ -402,17 +459,23 @@ class Success:
             message: str = "Data retrieved successfully"
     ) -> JSONResponse:
         """Response for paginated data lists"""
+        # Convert items using prepare_json_data to handle Beanie documents
+        serialized_items = [prepare_json_data(item) for item in items]
+
+        # Create pagination metadata
+        pagination = {
+            "total_count": total_count,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": (total_count + page_size - 1) // page_size,
+            "has_next": page * page_size < total_count,
+            "has_prev": page > 1
+        }
+
         return Success.ok(
             message=message,
             data={
-                "items": items,
-                "pagination": {
-                    "total_count": total_count,
-                    "page": page,
-                    "page_size": page_size,
-                    "total_pages": (total_count + page_size - 1) // page_size,
-                    "has_next": page * page_size < total_count,
-                    "has_prev": page > 1
-                }
+                "items": serialized_items,
+                "pagination": pagination
             }
         )

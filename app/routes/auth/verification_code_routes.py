@@ -12,7 +12,7 @@ async def get_code(user_data: VerificationCode):
     """
     return await verification_service.generate_verification_code(user_data.email)
 
-@verification_service.post("/verify/email/")
+@verification_router.post("/verify/email/")
 async def verify_user_email(user_data: VerificationCode):
     """
     Verify the user's email using the provided verification code.
