@@ -3,7 +3,7 @@ from starlette.responses import JSONResponse
 
 from app.core.response.exceptions import Exceptions
 from app.core.response.success import Success
-from app.core.generator import IDPrefix, GeneratorManager
+from app.core.utils.generator import IDPrefix, GeneratorManager
 from app.crud import user_crud
 from app.models.user_models import User, UserRole
 

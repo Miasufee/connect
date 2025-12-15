@@ -4,6 +4,7 @@ import uuid
 from pathlib import Path
 from fastapi import UploadFile
 from app.core.response.exceptions import Exceptions
+from app.core.utils.settings import settings
 
 ALLOWED_IMAGE_TYPES = {"image/png", "image/jpeg", "image/webp"}
 BASE_PATH = Path("media/zawiya/avatars")
@@ -23,3 +24,8 @@ async def save_image(file: UploadFile) -> str:
     file_path.write_bytes(content)
 
     return str(file_path)
+
+def media_url(path: str | None) -> str | None:
+    if not path:
+        return None
+    return f"{settings.MEDIA_BASE_URL}{path.replace('media/', '')}"

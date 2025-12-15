@@ -40,6 +40,8 @@ class Settings(BaseSettings):
 
     FRONTEND_URL: str = ""
 
+    MEDIA_BASE_URL: str = ""
+
     EMAIL_HOST: str = ""
     EMAIL_PORT: int = 587
     EMAIL_USE_TLS: bool = True

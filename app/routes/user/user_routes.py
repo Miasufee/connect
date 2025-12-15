@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter, HTTPException, status, Query
 
-from app.core.dependencies import RegularUser
+from app.core.utils.dependencies import RegularUser
 from app.crud import user_profile_crud, user_phone_number_crud
 
 

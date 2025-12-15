@@ -1,5 +1,8 @@
+from typing import Optional
+
 from beanie import PydanticObjectId
 
+from app.core.response.success import Success
 from app.crud import CrudBase
 from app.models.zawiya_models import ZawiyaAddress
 
@@ -10,15 +13,17 @@ class ZawiyaAddressCrud(CrudBase[ZawiyaAddress]):
     async def set_address(
         self,
         zawiya_id: PydanticObjectId,
-        country: str,
-        state: str,
-        city: str,
-        address: str,
-        postal_code: str,
-        latitude: float,
-        longitude: float
+        country: Optional[str] = None,
+        state:  Optional[str] = None,
+        city:  Optional[str] = None,
+        address:  Optional[str] = None,
+        postal_code:  Optional[str] = None,
+        latitude:  Optional[float] = None,
+        longitude:  Optional[float] = None
     ):
-        existing = await self.get_one(zawiya_id=zawiya_id)
+        if isinstance(zawiya_id, str):
+            zawiya_id = PydanticObjectId(zawiya_id)
+
         data = {
             "country": country,
             "state": state,
@@ -26,15 +31,22 @@ class ZawiyaAddressCrud(CrudBase[ZawiyaAddress]):
             "address": address,
             "postal_code": postal_code,
             "latitude": latitude,
-            "longtitude": longitude
+            "longitude": longitude
         }
 
-        if existing:
-            return await self.update(existing.id, data)
+        update_data = {k: v for k, v in data.items() if v is not None}
 
-        return await self.create(zawiya_id=zawiya_id, **data)
+        await self.upsert(
+            filters={"zawiya_id": zawiya_id},
+            update_data=update_data
+        )
+
+        return Success.ok(message="Address set successfully")
 
     async def get_address(self, zawiya_id: PydanticObjectId):
         return await self.get_one(zawiya_id=zawiya_id)
+
+    async def delete_zawiya_address(self, zawiya_id: PydanticObjectId):
+        return await self.delete_by_filter(zawiya_id=zawiya_id)
 
 zawiya_address_crud = ZawiyaAddressCrud()

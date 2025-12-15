@@ -2,7 +2,7 @@ from starlette.responses import JSONResponse
 
 from app.core.response.exceptions import Exceptions
 from app.core.response.success import Success
-from app.core.token_manager import TokenManager
+from app.core.utils.token_manager import TokenManager
 from app.crud import user_crud
 from app.crud.user_cruds.verification_code_crud import verification_code_crud
 from app.schemas.user.user_auth_schema import UserCreate, UserOut, UserLogin

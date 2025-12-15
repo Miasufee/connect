@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter
 
-from app.core.dependencies import RegularUser
+from app.core.utils.dependencies import RegularUser
 from app.crud import user_preferences_crud
 from app.schemas.user.user_preferences_schema import (
     UserPreferencesCreate,

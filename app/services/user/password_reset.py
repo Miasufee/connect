@@ -2,11 +2,11 @@ import logging
 from datetime import timezone
 from starlette.responses import JSONResponse
 
-from app.core.generator import GeneratorManager
+from app.core.utils.generator import GeneratorManager
 from app.core.response.exceptions import Exceptions
 from app.core.response.success import Success
-from app.core.security import SecurityManager
-from app.core.settings import settings
+from app.core.utils.security import SecurityManager
+from app.core.utils.settings import settings
 from app.crud import user_crud
 from app.crud.user_cruds.password_reset_crud import password_reset_crud
 from app.models.user_models import UserRole

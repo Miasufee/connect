@@ -1,23 +1,17 @@
-from fastapi import  APIRouter
+from fastapi import  APIRouter, status
 
-from app.core.dependencies import RegularUser
-from app.core.response.exceptions import Exceptions
-from app.crud.zawiya_cruds import zawiya_address_crud
-from app.crud.zawiya_cruds.zawiya_admin_crud import zawiya_admin_crud
+from app.core.utils.dependencies import RegularUser
 from app.schemas.zawiya.zawiya_address import ZawiyaAddress, ZawiyaAddressCreate
+from app.services.zawiya.zawiya_address_service import zawiya_address_service
 
 router = APIRouter(prefix="/zawiya-address")
 
-@router.post("/create/update")
-async def create_or_update_address(payload: ZawiyaAddressCreate, owner: RegularUser = None):
-    verify_owner = await zawiya_admin_crud.is_owner(
-        user_id=owner.id,
-        zawiya_id=payload.zawiya_id
-    )
-    if not verify_owner:
-        raise Exceptions.permission_denied(detail="your not the owner")
-    return await zawiya_address_crud.set_address(
+@router.patch("/create/update", status_code=status.HTTP_201_CREATED)
+async def _create_or_update_address(payload: ZawiyaAddressCreate, owner: RegularUser = None):
+
+    return await zawiya_address_service.create_or_update_address(
         zawiya_id=payload.zawiya_id,
+        user_id=owner.id,
         country=payload.country,
         state=payload.state,
         city=payload.city,
@@ -27,8 +21,12 @@ async def create_or_update_address(payload: ZawiyaAddressCreate, owner: RegularU
         longitude=payload.longitude
     )
 
-@router.get("/get")
+@router.get("/get", status_code=status.HTTP_200_OK)
 async def _get_zawiya_address(payload: ZawiyaAddress):
-    return await zawiya_address_crud.get_address(
+    return await zawiya_address_service.get_zawiya_address(
         zawiya_id=payload.zawiya_id
     )
+
+@router.delete("/delete", status_code=status.HTTP_204_NO_CONTENT)
+async def _delete_address(payload: ZawiyaAddress, owner: RegularUser = None):
+    return await zawiya_address_service.delete_address(zawiya_id=payload.zawiya_id, user_id=owner.id)

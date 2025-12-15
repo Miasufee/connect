@@ -4,8 +4,8 @@ from authlib.integrations.httpx_client import AsyncOAuth2Client
 from authlib.integrations.starlette_client import OAuth
 
 from app.core.response.success import Success, prepare_json_data
-from app.core.settings import settings
-from app.core.token_manager import TokenManager
+from app.core.utils.settings import settings
+from app.core.utils.token_manager import TokenManager
 from app.crud import user_crud
 
 oauth = OAuth()

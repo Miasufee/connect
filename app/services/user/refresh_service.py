@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from fastapi import Request
-from typing import Tuple, Any, Coroutine
-from app.core.security import security_manager
-from app.core.token_manager import token_manager, Token
-from app.models import User
+from typing import Tuple, Any
+from app.core.utils.security import security_manager
+from app.core.utils.token_manager import token_manager
 from app.models.user_models import User
 
 

@@ -4,8 +4,8 @@ from typing import Tuple, Optional
 from app.core.response.exceptions import Exceptions
 from app.models.user_models import User, RefreshedToken
 from app.crud.user_cruds.refreshed_token_crud import refreshed_token_crud
-from app.core.settings import settings
-from app.core.security import SecurityManager
+from app.core.utils.settings import settings
+from app.core.utils.security import SecurityManager
 
 
 class Token:

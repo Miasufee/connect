@@ -1,147 +1,152 @@
-from typing import Optional, List
+from typing import List, Optional
 from beanie import PydanticObjectId
 
-from app.models.zawiya_models import Zawiya, ZawiyaAdmin, ZawiyaRoles
+from app.core.response.exceptions import Exceptions
+from app.crud.zawiya_cruds import zawiya_crud
+from app.models.zawiya_models import ZawiyaAdmin, ZawiyaRoles
 from app.crud.crud_base import CrudBase
 
 
 class ZawiyaAdminCRUD(CrudBase[ZawiyaAdmin]):
-    """
-    CRUD for Zawiya Admins with:
-    - Owner-only management rules
-    - Role updates
-    - Prevent duplicate admins
-    """
 
     def __init__(self):
         super().__init__(ZawiyaAdmin)
 
-    # -----------------------------------------------------
-    # Helpers
-    # -----------------------------------------------------
+    # =====================================================
+    # OWNER & ROLE CHECKS
+    # =====================================================
+
     @staticmethod
-    async def is_owner(user_id: PydanticObjectId, zawiya_id: PydanticObjectId) -> bool:
-        """Check if user owns the zawiya."""
-        zawiya = await Zawiya.find_one(
-            Zawiya.id == zawiya_id,
-            Zawiya.owner_id == user_id,
-            Zawiya.is_deleted == False
-        )
-        return zawiya is not None
+    async def is_owner(
+        user_id: PydanticObjectId,
+        zawiya_id: PydanticObjectId,
+    ) -> bool:
+        zawiya = await zawiya_crud.get_by_id(zawiya_id)
+        return bool(zawiya and not zawiya.is_deleted and zawiya.owner_id == user_id)
+
+    async def require_owner(
+        self,
+        user_id: PydanticObjectId,
+        zawiya_id: PydanticObjectId,
+    ) -> None:
+        if not await self.is_owner(user_id, zawiya_id):
+            raise Exceptions.forbidden("Owner only")
 
     async def get_admin(
-        self, user_id: PydanticObjectId, zawiya_id: PydanticObjectId
+        self,
+        user_id: PydanticObjectId,
+        zawiya_id: PydanticObjectId,
     ) -> Optional[ZawiyaAdmin]:
-        """Get admin record for a user in a zawiya."""
         return await self.model.find_one(
             ZawiyaAdmin.user_id == user_id,
             ZawiyaAdmin.zawiya_id == zawiya_id,
-            ZawiyaAdmin.is_deleted == False
+            ZawiyaAdmin.is_deleted == False,
         )
 
-    async def is_super_admin(
-        self, user_id: PydanticObjectId, zawiya_id: PydanticObjectId
+    async def is_admin(
+        self,
+        user_id: PydanticObjectId,
+        zawiya_id: PydanticObjectId,
     ) -> bool:
-        """Check if user is SuperAdmin for zawiya."""
-        admin = await self.model.find_one(
-            ZawiyaAdmin.user_id == user_id,
-            ZawiyaAdmin.zawiya_id == zawiya_id,
-            ZawiyaAdmin.role == ZawiyaRoles.SuperAdmin,
-            ZawiyaAdmin.is_deleted == False
-        )
-        return admin is not None
+        return await self.get_admin(user_id, zawiya_id) is not None
 
-    async def is_local_admin(
-        self, user_id: PydanticObjectId, zawiya_id: PydanticObjectId
+    async def is_admin_or_owner(
+        self,
+        user_id: PydanticObjectId,
+        zawiya_id: PydanticObjectId,
     ) -> bool:
-        """Check if user is any level of admin."""
-        admin = await self.model.find_one(
-            ZawiyaAdmin.user_id == user_id,
-            ZawiyaAdmin.zawiya_id == zawiya_id,
-            ZawiyaAdmin.is_deleted == False
+        return await self.is_owner(user_id, zawiya_id) or await self.is_admin(
+            user_id, zawiya_id
         )
-        return admin is not None
 
-    # -----------------------------------------------------
-    # Create admin
-    # -----------------------------------------------------
+    # =====================================================
+    # CREATE ADMIN
+    # =====================================================
+
     async def add_admin(
         self,
+        *,
         owner_id: PydanticObjectId,
         user_id: PydanticObjectId,
         zawiya_id: PydanticObjectId,
-        role: ZawiyaRoles = ZawiyaRoles.Admin
+        role: ZawiyaRoles = ZawiyaRoles.ADMIN,
     ) -> ZawiyaAdmin:
-        """
-        Add a new admin.
-        Only Zawiya Owner can assign admins.
-        Prevents duplicate admin assignment.
-        """
 
-        if not await self.is_owner(owner_id, zawiya_id):
-            raise PermissionError("Only the Zawiya owner can add admins")
+        await self.require_owner(owner_id, zawiya_id)
 
-        # Check duplicates
-        existing = await self.get_admin(user_id, zawiya_id)
-        if existing:
-            raise ValueError("User is already an admin of this Zawiya")
+        if owner_id == user_id:
+            raise Exceptions.conflict("Owner cannot be added as admin")
+
+        if await self.get_admin(user_id, zawiya_id):
+            raise Exceptions.conflict("User is already an admin")
 
         return await self.create(
             user_id=user_id,
             zawiya_id=zawiya_id,
-            role=role
+            role=role,
         )
 
-    # -----------------------------------------------------
-    # Update role
-    # -----------------------------------------------------
+    # =====================================================
+    # UPDATE ROLE
+    # =====================================================
+
     async def update_role(
         self,
+        *,
         owner_id: PydanticObjectId,
         admin_id: PydanticObjectId,
         zawiya_id: PydanticObjectId,
-        new_role: ZawiyaRoles
+        role: ZawiyaRoles,
     ) -> ZawiyaAdmin:
 
-        if not await self.is_owner(owner_id, zawiya_id):
-            raise PermissionError("Only the Zawiya owner can update admin roles")
+        await self.require_owner(owner_id, zawiya_id)
 
         admin = await self.get(admin_id)
         if not admin or admin.is_deleted:
-            raise ValueError("Admin not found")
+            raise Exceptions.conflict("Admin not found")
 
-        admin.role = new_role
+        if admin.user_id == owner_id:
+            raise Exceptions.conflict("Owner role cannot be modified")
+
+        admin.role = role
         await admin.save()
         return admin
 
-    # -----------------------------------------------------
-    # Remove admin (Soft Delete)
-    # -----------------------------------------------------
+    # =====================================================
+    # REMOVE ADMIN (SOFT DELETE)
+    # =====================================================
+
     async def remove_admin(
         self,
+        *,
         owner_id: PydanticObjectId,
         admin_id: PydanticObjectId,
-        zawiya_id: PydanticObjectId
-    ) -> bool:
+        zawiya_id: PydanticObjectId,
+    ) -> None:
 
-        if not await self.is_owner(owner_id, zawiya_id):
-            raise PermissionError("Only the Zawiya owner can remove admins")
+        await self.require_owner(owner_id, zawiya_id)
 
         admin = await self.get(admin_id)
         if not admin or admin.is_deleted:
-            raise ValueError("Admin record not found")
+            raise Exceptions.conflict("Admin not found")
+
+        if admin.user_id == owner_id:
+            raise Exceptions.conflict("Owner cannot be removed")
 
         await admin.soft_delete()
-        return True
 
-    # -----------------------------------------------------
-    # List admins
-    # -----------------------------------------------------
-    async def list_admins(self, zawiya_id: PydanticObjectId) -> List[ZawiyaAdmin]:
-        """Return all active admins for a Zawiya."""
+    # =====================================================
+    # LIST ADMINS
+    # =====================================================
+
+    async def list_admins(
+        self,
+        zawiya_id: PydanticObjectId,
+    ) -> List[ZawiyaAdmin]:
         return await self.model.find(
             ZawiyaAdmin.zawiya_id == zawiya_id,
-            ZawiyaAdmin.is_deleted == False
+            ZawiyaAdmin.is_deleted == False,
         ).to_list()
+
 
 zawiya_admin_crud = ZawiyaAdminCRUD()

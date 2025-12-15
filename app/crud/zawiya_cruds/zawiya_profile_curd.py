@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from typing import Optional
+
 from beanie import PydanticObjectId
 
+from app.core.response.success import Success
 from app.crud import CrudBase
 from app.models.zawiya_models import ZawiyaProfile
 
@@ -10,26 +13,29 @@ class ZawiyaProfileCrud(CrudBase[ZawiyaProfile]):
         super().__init__(ZawiyaProfile)
 
     async def create_or_update_profile(
-        self,
-        zawiya_id: PydanticObjectId,
-        avatar: str | None = None,
-        banner: str | None = None,
-        sheik: str | None = None
+            self,
+            zawiya_id: PydanticObjectId | str,
+            avatar: Optional[str] = None,
+            banner: Optional[str] = None,
+            sheik_name: Optional[str] = None,
     ):
-        existing = await self.get_one(zawiya_id=zawiya_id)
-        data = {
-            "zawiya_avatar": avatar,
-            "zawiya_banner": banner,
-            "zawiya_sheik": sheik
+        if isinstance(zawiya_id, str):
+            zawiya_id = PydanticObjectId(zawiya_id)
+
+        update_data = {
+            "avatar": avatar,
+            "banner": banner,
+            "sheik_name": sheik_name,
         }
 
-        if existing:
-            return await self.update(existing.id, data)
+        # Remove None values (don’t overwrite existing fields)
+        update_data = {k: v for k, v in update_data.items() if v is not None}
 
-        return await self.create(
-            zawiya_id=zawiya_id,
-            **data
+        await self.upsert(
+            filters={"zawiya_id": zawiya_id},
+            update_data=update_data,
         )
+        return Success.created(message="profile created")
 
     async def get_profile(self, zawiya_id: PydanticObjectId):
         return await self.get_one(zawiya_id=zawiya_id)

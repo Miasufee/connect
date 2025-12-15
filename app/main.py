@@ -4,10 +4,12 @@ from starlette.middleware.sessions import SessionMiddleware
 from contextlib import asynccontextmanager
 import logging
 
+from starlette.staticfiles import StaticFiles
+
 from app.services.user.superuser_auth import superuser_create
-from app.core.exception_handlers import setup_exception_handlers
-from app.core.settings import settings
-from app.core.database import mongodb
+from app.core.utils.exception_handlers import setup_exception_handlers
+from app.core.utils.settings import settings
+from app.core.utils.database import mongodb
 from app.routes.api_routes import api_router
 
 # Configure logging
@@ -44,6 +46,12 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,
+)
+
+app.mount(
+    "/media",
+    StaticFiles(directory="media"),
+    name="media",
 )
 
 

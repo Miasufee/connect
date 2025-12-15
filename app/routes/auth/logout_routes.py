@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from app.core.dependencies import CurrentUser
-from app.core.token_manager import token_manager
+from app.core.utils.dependencies import CurrentUser
+from app.core.utils.token_manager import token_manager
 from app.core.response.success import Success
 
 router = APIRouter()

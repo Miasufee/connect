@@ -1,29 +1,22 @@
 from beanie import PydanticObjectId
 from app.core.response.exceptions import Exceptions
-from app.models.zawiya_models import ZawiyaAdmin, ZawiyaRoles
+from app.crud.zawiya_cruds.zawiya_admin_crud import zawiya_admin_crud
 
 
 class ZawiyaPermissionService:
-    """Zawiya role & ownership checks"""
 
-    async def is_owner(self, zawiya_id: PydanticObjectId, user_id: PydanticObjectId) -> bool:
-        return await ZawiyaAdmin.find_one(
-            ZawiyaAdmin.zawiya_id == zawiya_id,
-            ZawiyaAdmin.user_id == user_id,
-            ZawiyaAdmin.role == ZawiyaRoles.SuperAdmin,
-        ) is not None
+    async def require_owner(self, *, zawiya_id: PydanticObjectId, user_id: PydanticObjectId):
+        if not await zawiya_admin_crud.is_owner(user_id, zawiya_id):
+            raise Exceptions.forbidden("Owner only")
 
-    async def require_owner(self, zawiya, user_id):
-        if zawiya.owner_id != user_id:
-            raise Exceptions.forbidden("Only owner can perform this action")
+    async def require_admin_or_owner(
+        self, *, zawiya_id: PydanticObjectId, user_id: PydanticObjectId
+    ):
+        if await zawiya_admin_crud.is_owner(user_id, zawiya_id):
+            return
 
-    async def require_admin_or_owner(self, zawiya_id, user_id):
-        admin = await ZawiyaAdmin.find_one(
-            ZawiyaAdmin.zawiya_id == zawiya_id,
-            ZawiyaAdmin.user_id == user_id,
-        )
-        if not admin:
-            raise Exceptions.forbidden("Admin or Owner role required")
+        if not await zawiya_admin_crud.is_admin(user_id, zawiya_id):
+            raise Exceptions.forbidden("Admin or Owner required")
 
 
 zawiya_permission = ZawiyaPermissionService()

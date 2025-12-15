@@ -3,29 +3,21 @@ from typing import Optional
 
 from beanie import Document, PydanticObjectId
 from pydantic import Field
+from pymongo import IndexModel, ASCENDING
 
 from app.models.models_base import TimestampMixin, SoftDeleteMixin
 
 
 # --------------------- ROLES ---------------------
 class ZawiyaRoles(str, Enum):
-    SuperAdmin = "SuperAdmin"
-    Admin = "Admin"
-
+    ADMIN = "Admin"
+    MANAGER = "Manager"
+    MODERATOR = "Moderator"
 
 class NotificationLevel(str, Enum):
     ALL = "all"
     PERSONALIZED = "personalized"
     NONE = "none"
-
-
-class ZawiyaRole(str, Enum):
-    OWNER = "Owner"
-    ADMIN = "Admin"
-    MANAGER = "Manager"
-    MODERATOR = "Moderator"
-    EDITOR = "Editor"
-    VIEWER = "Viewer"
 
 
 # --------------------- MAIN CHANNEL ---------------------
@@ -59,6 +51,12 @@ class ZawiyaProfile(Document, TimestampMixin, SoftDeleteMixin):
 
     class Settings:
         name = "zawiya_profile"
+        indexes = [
+            IndexModel(
+                [("zawiya_id", ASCENDING)],
+                unique=True
+            )
+        ]
 
 
 # --------------------- ADDRESS ---------------------
@@ -111,7 +109,8 @@ class ZawiyaSubscription(Document, TimestampMixin, SoftDeleteMixin):
 class ZawiyaAdmin(Document, TimestampMixin, SoftDeleteMixin):
     user_id: PydanticObjectId
     zawiya_id: PydanticObjectId
-    role: ZawiyaRoles = ZawiyaRoles.Admin
+    role: ZawiyaRoles = ZawiyaRoles.ADMIN
 
     class Settings:
         name = "zawiya_admins"
+        indexes = [("user_id", "zawiya_id")]

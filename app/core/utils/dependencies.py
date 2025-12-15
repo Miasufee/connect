@@ -3,7 +3,7 @@ from typing import Annotated, TypeAlias, Iterable, Optional
 from fastapi import Request, Depends
 
 from app.models.user_models import User, UserRole
-from app.core.security import security_manager
+from app.core.utils.security import security_manager
 from app.core.response.exceptions import Exceptions
 
 # -------------------------------

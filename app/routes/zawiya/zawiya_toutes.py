@@ -3,7 +3,7 @@ from __future__ import annotations
 from beanie import PydanticObjectId
 from fastapi import APIRouter, status, Query
 
-from app.core.dependencies import RegularUser, AdminSuperAdmin
+from app.core.utils.dependencies import RegularUser, AdminSuperAdmin
 from app.core.response.exceptions import Exceptions
 from app.schemas.zawiya.zawiya import ZawiyaCreate, ZawiyaVerify
 from app.services.zawiya.zawiya_service import zawiya_service

@@ -1,8 +1,8 @@
 from app.core.services.email import email_service
-from app.core.generator import GeneratorManager, IDPrefix
+from app.core.utils.generator import GeneratorManager, IDPrefix
 from app.core.response.success import Success
 from app.core.response.exceptions import Exceptions
-from app.core.settings import settings
+from app.core.utils.settings import settings
 from app.crud import user_crud
 from app.models.user_models import UserRole
 

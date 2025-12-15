@@ -1,7 +1,7 @@
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from beanie import init_beanie
-from app.core.settings import settings
+from app.core.utils.settings import settings
 from app.models.user_models import User, VerificationCode, RefreshedToken, UserProfile, PhoneNumber, \
     UserPreferences, PasswordResetToken
 from app.models.zawiya_models import (Zawiya, ZawiyaProfile, ZawiyaAddress,

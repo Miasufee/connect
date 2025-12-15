@@ -5,7 +5,7 @@ from app.crud.crud_base import CrudBase
 from app.models import utc_now
 from app.models.user_models import VerificationCode
 from app.core.response.exceptions import Exceptions
-from app.core.generator import GeneratorManager
+from app.core.utils.generator import GeneratorManager
 
 
 class VerificationCodeCrud(CrudBase[VerificationCode]):

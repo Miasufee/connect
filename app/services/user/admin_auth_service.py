@@ -1,8 +1,7 @@
 from pydantic import EmailStr
-from starlette.responses import JSONResponse
 
-from app.core.security import SecurityManager
-from app.core.token_manager import token_manager
+from app.core.utils.security import SecurityManager
+from app.core.utils.token_manager import token_manager
 from app.core.response.exceptions import Exceptions
 from app.core.response.success import Success
 from app.crud import user_crud

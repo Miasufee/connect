@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Query
 from typing import Optional
 from app.crud import user_crud
-from app.core.dependencies import SuperUser
+from app.core.utils.dependencies import SuperUser
 from app.models import UserRole
-from app.schemas.user.user_auth_schema import UserOut, PaginatedUsers
+from app.schemas.user.user_auth_schema import PaginatedUsers
 
 router = APIRouter()
 

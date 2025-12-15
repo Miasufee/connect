@@ -11,7 +11,7 @@ from jose import jwt, JWTError, ExpiredSignatureError
 from passlib.context import CryptContext
 
 from app.core.response.exceptions import Exceptions
-from app.core.settings import settings
+from app.core.utils.settings import settings
 from app.crud import user_crud
 from app.models.user_models import User
 
