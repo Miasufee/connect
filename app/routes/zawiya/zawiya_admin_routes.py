@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body
 
 from app.core.utils.dependencies import RegularUser
-from app.schemas.zawiya.zawiya_admin import ZawiyaAdmin, ZawiyaAdminCreate, ZawiyaRoleUpdate, AdminRemove
+from app.schemas.zawiya.zawiya_admin_schema import ZawiyaAdmin, ZawiyaAdminCreate, ZawiyaRoleUpdate, AdminRemove
 from app.services.zawiya.zawiya_admin_service import zawiya_admin_service
 
 router = APIRouter()

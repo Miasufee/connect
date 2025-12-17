@@ -8,13 +8,14 @@ from app.routes.auth.role_management_routes import router as role_management_rou
 from app.routes.zawiya.zawiya_admin_routes import router as zawiya_admin_router
 from app.routes.zawiya.zawiya_address_routes import router as address_router
 from app.routes.zawiya.zawiya_profile_routes import router as zawiya_profile_router
-from app.routes.zawiya.zawiya_subscription_routes import router as zawiya_subscription_router
+
 from app.routes.user.superuser_routes import router as superuser_router
 from .auth.refreshd_routes import refresh_router
 from .auth.verification_code_routes import verification_router
 from .user.user_profile_routes import profile_router
 from .user.phone_number_routes import phone_router
 from .user.user_prefrences import preferences_router
+from .zawiya.zawiya_subscriptions_routes import zawiya_subscription_router
 from .zawiya.zawiya_toutes import zawiya_router
 
 api_router = APIRouter()
@@ -29,10 +30,10 @@ api_router.include_router(zawiya_router)
 api_router.include_router(zawiya_admin_router, tags=["admin-management"])
 api_router.include_router(address_router, tags=["address routes"])
 api_router.include_router(zawiya_profile_router, tags=["zawiya profile router"])
-api_router.include_router(zawiya_subscription_router, tags=["zawiya subscription "])
 api_router.include_router(superuser_router, tags=["superuser routes"])
 api_router.include_router(profile_router)
 api_router.include_router(phone_router)
 api_router.include_router(preferences_router)
 api_router.include_router(refresh_router)
 api_router.include_router(verification_router)
+api_router.include_router(zawiya_subscription_router, tags=["Zawiya Subscriptions"])

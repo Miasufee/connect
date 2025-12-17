@@ -99,10 +99,11 @@ class ZawiyaSubscription(Document, TimestampMixin, SoftDeleteMixin):
     class Settings:
         name = "zawiya_subscriptions"
         indexes = [
-            ("user_id", "zawiya_id"),
-            "notification_level",
+            IndexModel(
+                [("user_id", 1), ("zawiya_id", 1)],
+                unique=True
+            )
         ]
-
 
 
 # --------------------- ADMINS ---------------------

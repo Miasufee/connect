@@ -1,5 +1,6 @@
 from beanie import PydanticObjectId
 
+from app.core.response.exceptions import Exceptions
 from app.crud import CrudBase
 from app.models.zawiya_models import ZawiyaSubscription, NotificationLevel
 
@@ -8,20 +9,19 @@ class ZawiyaSubscriptionCrud(CrudBase[ZawiyaSubscription]):
         super().__init__(ZawiyaSubscription)
 
     async def subscribe(
-        self,
-        user_id: PydanticObjectId,
-        zawiya_id: PydanticObjectId,
-        level: NotificationLevel = NotificationLevel.PERSONALIZED
+            self,
+            user_id: PydanticObjectId,
+            zawiya_id: PydanticObjectId,
+            level: NotificationLevel = NotificationLevel.PERSONALIZED
     ):
-        existing = await self.get_one(user_id=user_id, zawiya_id=zawiya_id)
-        if existing:
-            existing.notification_level = level
-            return await existing.save()
-
-        return await self.create(
-            user_id=user_id,
-            zawiya_id=zawiya_id,
-            notification_level=level
+        return await self.upsert(
+            filters={
+                "user_id": user_id,
+                "zawiya_id": zawiya_id,
+            },
+            update_data={
+                "notification_level": level
+            }
         )
 
     async def unsubscribe(self, user_id: PydanticObjectId, zawiya_id: PydanticObjectId):
@@ -35,7 +35,7 @@ class ZawiyaSubscriptionCrud(CrudBase[ZawiyaSubscription]):
     ):
         sub = await self.get_one(user_id=user_id, zawiya_id=zawiya_id)
         if not sub:
-            raise ValueError("User is not subscribed")
+            raise Exceptions.bad_request("User is not subscribed")
 
         sub.notification_level = level
         return await sub.save()

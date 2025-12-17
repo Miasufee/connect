@@ -8,11 +8,10 @@ class ZawiyaAnalyticsCrud(CrudBase[ZawiyaAnalytics]):
         super().__init__(ZawiyaAnalytics)
 
     async def get_or_create(self, zawiya_id: PydanticObjectId):
-        existing = await self.get_one(zawiya_id=zawiya_id)
-        if existing:
-            return existing
-
-        return await self.create(zawiya_id=zawiya_id)
+        return await self.upsert(
+            filters={"zawiya_id": zawiya_id},
+            update_data={}
+        )
 
     async def increment(
         self,
@@ -34,3 +33,12 @@ class ZawiyaAnalyticsCrud(CrudBase[ZawiyaAnalytics]):
 
     async def add_subscriber(self, zawiya_id: PydanticObjectId):
         return await self.increment(zawiya_id, "total_subscribers")
+
+    async def add_livestream(self, zawiya_id: PydanticObjectId):
+        return await self.increment(zawiya_id, "total_livestreams")
+
+    async def add_content(self, zawiya_id: PydanticObjectId):
+        return await self.increment(zawiya_id, "total_content")
+
+
+zawiya_analytics_crud = ZawiyaAnalyticsCrud()

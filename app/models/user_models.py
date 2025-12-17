@@ -121,7 +121,8 @@ class VerificationCode(Document, TimestampMixin):
     class Settings:
         name = "verification_codes"
         indexes = [
-            IndexModel([("expires_at", 1)], expireAfterSeconds=0)
+            IndexModel([("user_id", 1)], unique=True),
+            IndexModel([("expires_at", 1)], expireAfterSeconds=0),
         ]
 
 

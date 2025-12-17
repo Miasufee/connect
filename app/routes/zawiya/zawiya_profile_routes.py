@@ -3,7 +3,7 @@ from fastapi import APIRouter, UploadFile, File, Form, Request
 
 from app.services.zawiya.zawiya_profile_service import zawiya_profile_service
 from app.core.utils.dependencies import RegularUser
-from app.schemas.zawiya.zawiya_profile import ZawiyaProfile
+from app.schemas.zawiya.zawiya_profile_schema import ZawiyaProfile
 import logging
 
 router = APIRouter(prefix="/zawiya-profile")

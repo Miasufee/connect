@@ -5,7 +5,7 @@ from fastapi import APIRouter, status, Query
 
 from app.core.utils.dependencies import RegularUser, AdminSuperAdmin
 from app.core.response.exceptions import Exceptions
-from app.schemas.zawiya.zawiya import ZawiyaCreate, ZawiyaVerify
+from app.schemas.zawiya.zawiya_schema import ZawiyaCreate, ZawiyaVerify
 from app.services.zawiya.zawiya_service import zawiya_service
 
 zawiya_router = APIRouter(prefix="/zawiya", tags=["Zawiya"])

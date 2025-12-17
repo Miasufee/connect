@@ -1,7 +1,7 @@
 from fastapi import  APIRouter, status
 
 from app.core.utils.dependencies import RegularUser
-from app.schemas.zawiya.zawiya_address import ZawiyaAddress, ZawiyaAddressCreate
+from app.schemas.zawiya.zawiya_address_schema import ZawiyaAddress, ZawiyaAddressCreate
 from app.services.zawiya.zawiya_address_service import zawiya_address_service
 
 router = APIRouter(prefix="/zawiya-address")
