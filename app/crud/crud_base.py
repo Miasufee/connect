@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Type, TypeVar, Generic, Union
-from beanie import Document, SortDirection
+from beanie import Document, SortDirection, PydanticObjectId
+from bson import ObjectId
 from pymongo.results import InsertManyResult
 
 ModelType = TypeVar("ModelType", bound=Document)
@@ -39,6 +40,12 @@ class CrudBase(Generic[ModelType]):
             return [(field, direction if isinstance(direction, SortDirection) else SortDirection.ASCENDING)
                     for field, direction in order_by]
         return None
+
+    @staticmethod
+    def _normalize_user_id(obj_id) -> PydanticObjectId:
+        if isinstance(obj_id, PydanticObjectId):
+            return obj_id
+        return PydanticObjectId(ObjectId(str(obj_id)))
 
     # ---------- CREATE ----------
 

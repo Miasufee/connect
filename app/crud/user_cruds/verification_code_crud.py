@@ -12,18 +12,27 @@ class VerificationCodeCrud(CrudBase[VerificationCode]):
     def __init__(self):
         super().__init__(VerificationCode)
 
-    async def create_verification_code(self, user_id: PydanticObjectId) -> str:
-        # Delete any existing code
-        await super().delete_by_filter(user_id=user_id)
+    async def create_verification_code(self, user_id) -> str:
+        user_id = self._normalize_user_id(user_id)
 
         code = GeneratorManager.generate_digits_code(6)
         expires_at = GeneratorManager.expires_at(10)
 
-        await super().create(
-            user_id=user_id,
-            code=code,
-            expires_at=expires_at,
+        await self.model.find_one(
+            {"user_id": user_id}
+        ).update_one(
+            {
+                "$set": {
+                    "code": code,
+                    "expires_at": expires_at,
+                },
+                "$setOnInsert": {
+                    "user_id": user_id,
+                },
+            },
+            upsert=True,
         )
+
         return code
 
     async def get_user_verification_code(self, user_id: PydanticObjectId):
