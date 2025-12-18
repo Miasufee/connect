@@ -32,7 +32,7 @@ class ZawiyaService:
         await ZawiyaAdmin(
             user_id=owner_id,
             zawiya_id=zawiya.id,
-            role=ZawiyaRoles.SuperAdmin,
+            role=ZawiyaRoles.ADMIN,
         ).insert()
 
         return zawiya

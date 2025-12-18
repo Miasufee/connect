@@ -19,7 +19,7 @@ async def subscribe(
     user_id: RegularUser = None
 ):
     subscription = await zawiya_subscription_service.subscribe_user(
-        user_id, zawiya_id, payload.level
+        user_id.id, zawiya_id, payload.level
     )
     return ZawiyaSubscriptionResponse(
         success=True,
@@ -37,7 +37,7 @@ async def unsubscribe(
     zawiya_id: PydanticObjectId,
     user_id: RegularUser = None
 ):
-    await zawiya_subscription_service.unsubscribe_user(user_id, zawiya_id)
+    await zawiya_subscription_service.unsubscribe_user(user_id.id, zawiya_id)
     return ZawiyaSubscriptionResponse(
         success=True,
         subscription_id=None,
@@ -56,7 +56,7 @@ async def update_notification_level(
     user_id: RegularUser = None
 ):
     subscription = await zawiya_subscription_service.change_notification_level(
-        user_id, zawiya_id, payload.level
+        user_id.id, zawiya_id, payload.level
     )
     return ZawiyaSubscriptionResponse(
         success=True,
@@ -74,7 +74,7 @@ async def check_subscription(
     zawiya_id: PydanticObjectId,
     user_id: RegularUser = None
 ):
-    subscription = await zawiya_subscription_service.check_subscription(user_id, zawiya_id)
+    subscription = await zawiya_subscription_service.check_subscription(user_id.id, zawiya_id)
     return ZawiyaSubscriptionResponse(
         success=True,
         subscription_id=subscription.id if subscription else None,

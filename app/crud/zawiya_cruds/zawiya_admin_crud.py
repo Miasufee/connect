@@ -100,8 +100,7 @@ class ZawiyaAdminCRUD(CrudBase[ZawiyaAdmin]):
     ) -> ZawiyaAdmin:
 
         await self.require_owner(owner_id, zawiya_id)
-
-        admin = await self.get(admin_id)
+        admin = await self.get_one(user_id=admin_id)
         if not admin or admin.is_deleted:
             raise Exceptions.conflict("Admin not found")
 
@@ -126,7 +125,7 @@ class ZawiyaAdminCRUD(CrudBase[ZawiyaAdmin]):
 
         await self.require_owner(owner_id, zawiya_id)
 
-        admin = await self.get(admin_id)
+        admin = await self.get_one(user_id=admin_id)
         if not admin or admin.is_deleted:
             raise Exceptions.conflict("Admin not found")
 
@@ -143,10 +142,11 @@ class ZawiyaAdminCRUD(CrudBase[ZawiyaAdmin]):
         self,
         zawiya_id: PydanticObjectId,
     ) -> List[ZawiyaAdmin]:
-        return await self.model.find(
-            ZawiyaAdmin.zawiya_id == zawiya_id,
-            ZawiyaAdmin.is_deleted == False,
-        ).to_list()
+        return await self.get_multi(filters={"zawiya_id": zawiya_id})
+        # return await self.model.find(
+        #     ZawiyaAdmin.zawiya_id == zawiya_id,
+        #     ZawiyaAdmin.is_deleted == False,
+        # ).to_list()
 
 
 zawiya_admin_crud = ZawiyaAdminCRUD()

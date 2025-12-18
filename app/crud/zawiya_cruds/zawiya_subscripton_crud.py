@@ -14,6 +14,7 @@ class ZawiyaSubscriptionCrud(CrudBase[ZawiyaSubscription]):
             zawiya_id: PydanticObjectId,
             level: NotificationLevel = NotificationLevel.PERSONALIZED
     ):
+        user_id = self._normalize_user_id(user_id)
         return await self.upsert(
             filters={
                 "user_id": user_id,

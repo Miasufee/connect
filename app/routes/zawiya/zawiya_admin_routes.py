@@ -21,7 +21,7 @@ async def _update_admin_role(payload: ZawiyaRoleUpdate = Body(...), owner: Regul
         owner_id=owner.id,
         admin_id=payload.admin_id,
         zawiya_id=payload.zawiya_id,
-        new_role=payload.role
+        role=payload.role
     )
 
 @router.get("/remove/zawiya/admin")
@@ -34,4 +34,4 @@ async def _remove_admin(payload: AdminRemove = Body(...), owner: RegularUser = N
 
 @router.get("/list/zawiya/admins")
 async def _get_admins(payload: ZawiyaAdmin):
-    return await zawiya_admin_service.list_admins(zawiya_id=payload.zawiya_id)
+    return await zawiya_admin_service.list_admin(zawiya_id=payload.zawiya_id)

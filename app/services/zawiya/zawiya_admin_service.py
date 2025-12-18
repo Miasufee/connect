@@ -47,7 +47,7 @@ class ZawiyaAdminService:
                 owner_id=owner_id,
                 admin_id=admin_id,
                 zawiya_id=zawiya_id,
-                new_role=role,
+                role=role,
             )
         except PermissionError:
             raise Exceptions.permission_denied(
@@ -79,9 +79,8 @@ class ZawiyaAdminService:
             raise Exceptions.not_found(str(e))
 
     # ---------------- LIST ADMINS ----------------
-    async def list_admins(
-        self,
-        *,
+    @staticmethod
+    async def list_admin(
         zawiya_id: PydanticObjectId,
     ) -> List[ZawiyaAdmin]:
         return await zawiya_admin_crud.list_admins(zawiya_id)
