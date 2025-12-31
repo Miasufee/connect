@@ -13,6 +13,10 @@ class StreamStatus(str, Enum):
     READY = "ready"
     ERROR = "error"
 
+class StreamType(str, Enum):
+    ONE_TO_MANY = "one_to_many"
+    GROUP = "group"
+
 class RecordingStatus(str, Enum):
     PENDING = "pending"
     PROCESSING = "processing"
@@ -29,3 +33,18 @@ class VideoStatus(str, Enum):
     PROCESSING = "processing"
     READY = "ready"
     FAILED = "failed"
+
+class ParticipantRole(str, Enum):
+    OWNER = "owner"
+    CO_HOST =  "co_host"
+    SPEAKER = "speaker"
+    VIEWER = "viewer"
+
+class LiveStreamEventType(str, Enum):
+    mute = "mute"
+    unmute = "unmute"
+    kick = "kick"
+    ban = "ban"
+    promote = "promote"
+    demote = "demote"
+    end_stream = "end_stream"

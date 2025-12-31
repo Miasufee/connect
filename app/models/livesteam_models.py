@@ -1,160 +1,125 @@
-from __future__ import annotations
-
 from datetime import datetime
-from typing import Optional, List, Any
+from typing import Optional
 
 from beanie import Document, PydanticObjectId
 from pydantic import Field
 
-from app.models import VisibilityStatus, StreamStatus, RecordingStatus
-from app.models.models_base import SoftDeleteMixin, TimestampMixin
+from app.models import TimestampMixin, VisibilityStatus, StreamType, ParticipantRole
+from .enums import StreamStatus, RecordingStatus, LiveStreamEventType
 
-class StreamBase(Document, TimestampMixin, SoftDeleteMixin):
-    """
-    Reusable base class for livestream models
-    """
 
-    # TTL expiration
-    ttl_at: Optional[datetime] = None  # mongo TTL index in Settings
-
-    # version control
-    version: int = 1
-
-    # audit logs
-    created_by: Optional[PydanticObjectId] = None
-    updated_by: Optional[PydanticObjectId] = None
-
-    # RBAC
-    allowed_roles: Optional[List[str]] = None
-    required_scopes: Optional[List[str]] = None
-
-    # free metadata
-    tags: Optional[List[str]] = None
-    metadata: Optional[dict[str, Any]] = None
-
-    async def soft_save(self):
-        self.version += 1
-        await self.save()
-
-    class Settings:
-        validate_on_save = True
-        use_revision = True
-
-class Stream(StreamBase):
-    owner_id: PydanticObjectId
+class LiveStream(Document, TimestampMixin):
     zawiya_id: PydanticObjectId
+    streamer_id: PydanticObjectId  # creator / owner
 
-    title: str = Field(..., min_length=3)
+    title: str = Field(min_length=5, max_length=500)
     description: Optional[str] = None
 
-    stream_key: str
     status: StreamStatus = StreamStatus.CREATED
-    visibility: VisibilityStatus = VisibilityStatus.PRIVATE
-
-    ingest_url: Optional[str] = None
-    playback_url: Optional[str] = None
-    thumbnail_url: Optional[str] = None
+    is_recorded: bool = True
+    visibility: VisibilityStatus = VisibilityStatus.PUBLIC
+    stream_type: StreamType = StreamType.ONE_TO_MANY
 
     started_at: Optional[datetime] = None
     ended_at: Optional[datetime] = None
-    duration_seconds: Optional[int] = None
-
-    viewer_count: int = 0
-    max_viewers: int = 0
 
     class Settings:
-        name = "streams"
+        name = "live_streams"
         indexes = [
-            "owner_id",
-            {"keys": [("stream_key", 1)], "unique": True},
-            [("title", "text"), ("description", "text")],   # text search
-            {"keys": [("ttl_at", 1)], "expireAfterSeconds": 0},  # TTL
+            "zawiya_id",
+            "status",
+            "visibility",
         ]
 
-class Recording(StreamBase):
+
+class StreamAnalytics(Document, TimestampMixin):
     stream_id: PydanticObjectId
 
-    status: RecordingStatus = RecordingStatus.PENDING
+    likes: int = Field(default=0, ge=0)
+    viewers: int = Field(default=0, ge=0)
+
+    class Settings:
+        name = "stream_analytics"
+        indexes = [
+            "stream_id",
+        ]
+
+class LiveStreamParticipant(Document, TimestampMixin):
+    stream_id: PydanticObjectId
+    user_id: PydanticObjectId
+    role: ParticipantRole = ParticipantRole.VIEWER
+
+    # Permission flags
+    can_publish_audio: bool = False
+    can_publish_video: bool = False
+    can_share_screen: bool = False
+    is_muted: bool = False
+    is_banned: bool = False
+
+    joined_at: datetime = Field(default_factory=datetime.utcnow)
+    left_at: Optional[datetime] = None
+
+    class Settings:
+        name = "live_stream_participants"
+        indexes = [
+            [("stream_id", 1), ("user_id", 1)],
+            "stream_id",
+        ]
+
+class WebRTCSession(Document, TimestampMixin):
+    stream_id: PydanticObjectId
+    sfu_type: str  # media-soup / livekit / janus / custom
+    sfu_room_id: str  # SFU room identifier
+    started_at: Optional[datetime] = None
+    ended_at: Optional[datetime] = None
+
+    class Settings:
+        name = "webrtc_sessions"
+        indexes = ["stream_id", "sfu_room_id"]
+
+
+class WebRTCPeer(Document, TimestampMixin):
+    session_id: PydanticObjectId
+    user_id: PydanticObjectId
+
+    peer_id: str  # internal SFU peer ID
+    is_publishing_audio: bool = False
+    is_publishing_video: bool = False
+    is_screen_sharing: bool = False
+
+    connected_at: datetime = Field(default_factory=datetime.utcnow)
+    disconnected_at: Optional[datetime] = None
+
+    class Settings:
+        name = "webrtc_peers"
+        indexes = [
+            [("session_id", 1)],
+            [("user_id", 1)],
+        ]
+class Recording(Document, TimestampMixin):
+    stream_id: PydanticObjectId
+
+    storage_path: str  # S3 / GCS / local path
+    format: str = "mp4"
+
     duration_seconds: Optional[int] = None
-
-    storage_path: Optional[str] = None
-    manifest_path: Optional[str] = None
-
-    processing_started_at: Optional[datetime] = None
-    processing_completed_at: Optional[datetime] = None
-
-    error_message: Optional[str] = None
-
-    node_id: Optional[str] = None
-    segment_prefix: Optional[str] = None
+    size_bytes: Optional[int] = None
+    status: RecordingStatus = RecordingStatus.PENDING
 
     class Settings:
         name = "recordings"
-        indexes = [
-            "stream_id",
-            "status",
-            "node_id",
-            {"keys": [("ttl_at", 1)], "expireAfterSeconds": 0},
-        ]
+        indexes = ["stream_id"]
 
-class Rendition(StreamBase):
-    recording_id: PydanticObjectId
 
-    quality: str
-    resolution: str
-    bitrate_kbps: int
-    codec: str
-    storage_path: str
-    file_size_bytes: Optional[int] = None
 
-    class Settings:
-        name = "renditions"
-        indexes = [
-            "recording_id",
-            "quality",
-        ]
-
-class HLSSegment(StreamBase):
-    recording_id: PydanticObjectId
-
-    sequence: int
-    duration: float
-    storage_path: str
-    byte_size: Optional[int] = None
-
-    class Settings:
-        name = "hls_segments"
-        indexes = [
-            "recording_id",
-            "sequence",
-        ]
-class StreamEvent(StreamBase):
+class LiveStreamEvent(Document, TimestampMixin):
     stream_id: PydanticObjectId
+    actor_id: PydanticObjectId
+    target_id: Optional[PydanticObjectId] = None
 
-    event_type: str
-    event_data: Optional[dict[str, Any]] = None
-    client_ip: Optional[str] = None
-    user_agent: Optional[str] = None
-
-    class Settings:
-        name = "stream_events"
-        indexes = [
-            "stream_id",
-            "event_type",
-            "created_at",
-        ]
-
-class Subtitle(StreamBase):
-    recording_id: PydanticObjectId
-
-    language: str
-    format: str = "vtt"
-    storage_path: str
-    is_auto_generated: bool = True
+    event_type: LiveStreamEventType
+    reason: Optional[str] = None
 
     class Settings:
-        name = "subtitles"
-        indexes = [
-            "recording_id",
-            "language",
-        ]
+        name = "live_stream_events"
+        indexes = ["stream_id", "actor_id", "target_id"]
