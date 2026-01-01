@@ -4,13 +4,15 @@ from typing import Optional
 from beanie import Document, PydanticObjectId
 from pydantic import Field
 
-from app.models import TimestampMixin, VisibilityStatus, StreamType, ParticipantRole
-from .enums import StreamStatus, RecordingStatus, LiveStreamEventType
+from app.models import TimestampMixin, VisibilityStatus, StreamType, ParticipantRole, SFUType
+from .enums import StreamStatus, RecordingStatus, LiveStreamEventType, VideoStatus
 
 
 class LiveStream(Document, TimestampMixin):
     zawiya_id: PydanticObjectId
     streamer_id: PydanticObjectId  # creator / owner
+    content_id: PydanticObjectId
+    group_id: Optional[PydanticObjectId] = None
 
     title: str = Field(min_length=5, max_length=500)
     description: Optional[str] = None
@@ -68,7 +70,7 @@ class LiveStreamParticipant(Document, TimestampMixin):
 
 class WebRTCSession(Document, TimestampMixin):
     stream_id: PydanticObjectId
-    sfu_type: str  # media-soup / livekit / janus / custom
+    sfu_type: SFUType = SFUType.MEDIA_SOUP  # media-soup / livekit / janus / custom
     sfu_room_id: str  # SFU room identifier
     started_at: Optional[datetime] = None
     ended_at: Optional[datetime] = None

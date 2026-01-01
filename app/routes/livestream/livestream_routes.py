@@ -3,7 +3,7 @@ from typing import List, Optional
 from beanie import PydanticObjectId
 
 from app.models import ParticipantRole
-from app.schemas.livestream.livestream import StreamResponseSchema, StreamCreateSchema, ParticipantResponseSchema, \
+from app.schemas.livestream.livestream_schema import StreamResponseSchema, StreamCreateSchema, ParticipantResponseSchema, \
     ParticipantAddSchema, AnalyticsResponseSchema
 from app.services.contents.livestream_service.livestream_service import LiveStreamService
 

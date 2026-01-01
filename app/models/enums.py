@@ -48,3 +48,16 @@ class LiveStreamEventType(str, Enum):
     promote = "promote"
     demote = "demote"
     end_stream = "end_stream"
+
+class ContentType(str, Enum):
+    VIDEO = "video"
+    LIVESTREAM = "livestream"
+    POST = "post"
+    AUDIO = "audio"
+    IMAGE = "image"
+
+class SFUType(str, Enum):
+    MEDIA_SOUP = "media-soup"
+    LIVE_KIT = "livekit"
+    JANUS = "janus"
+    CUSTOM = "custom"

@@ -5,6 +5,7 @@ from beanie import Document, PydanticObjectId
 from pydantic import Field
 from pymongo import IndexModel, ASCENDING
 
+from app.models import VisibilityStatus
 from app.models.models_base import TimestampMixin, SoftDeleteMixin
 
 
