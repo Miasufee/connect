@@ -1,19 +1,16 @@
-from typing import Optional
-
 from beanie import Document, PydanticObjectId
 
-from app.models import TimestampMixin, VisibilityStatus
+from app.models import TimestampMixin, VisibilityStatus, ContentType, ZawiyaIdMixin, GroupIdMixin, UserIdMixin
 
 
-class Content(Document, TimestampMixin):
-    zawiya_id: PydanticObjectId
-    group_id: Optional[PydanticObjectId] = None  # ← OPTIONAL
-
-    author_id: PydanticObjectId
-
+class Post(Document, TimestampMixin, ZawiyaIdMixin, GroupIdMixin, UserIdMixin):
+    content_id: PydanticObjectId # video live-stream image
     content_type: ContentType
-    title: Optional[str] = None
-    text: Optional[str] = None
+    is_deleted: bool = False
+    is_pinned: bool = False
+    published: bool = False
+    like_count: int = 0
+    dislike_count: int = 0
 
     visibility: VisibilityStatus = VisibilityStatus.PUBLIC
 

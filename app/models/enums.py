@@ -4,6 +4,7 @@ from enum import Enum
 class VisibilityStatus(str, Enum):
     PRIVATE = "private"
     PUBLIC = "public"
+    GROUP = "group"
 
 class StreamStatus(str, Enum):
     CREATED = "created"
@@ -61,3 +62,27 @@ class SFUType(str, Enum):
     LIVE_KIT = "livekit"
     JANUS = "janus"
     CUSTOM = "custom"
+
+
+class AudioStatus(str, Enum):
+    # Initial state
+    CREATED = "created"
+
+    # Processing lifecycle
+    UPLOADING = "uploading"
+    UPLOADED = "uploaded"
+    PROCESSING = "processing"
+    READY = "ready"
+
+    # Failure states
+    FAILED = "failed"
+
+    # Visibility / moderation
+    PRIVATE = "private"
+    PUBLISHED = "published"
+    BLOCKED = "blocked"
+    DELETED = "deleted"
+
+class ReactionType(str, Enum):
+    LIKE = "like"
+    DISLIKE = "dislike"   # optional

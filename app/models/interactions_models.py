@@ -1,93 +1,47 @@
-from enum import Enum
-from typing import Optional
 from beanie import Document, PydanticObjectId
-from pydantic import Field
 
-from app.models.models_base import TimestampMixin, SoftDeleteMixin, UserIdMixin
-
-
-class VideoCommentReactionType(str, Enum):
-    LIKE = "like"
-    DISLIKE = "dislike"
+from app.models import TimestampMixin, ReactionType
 
 
-class VideoCommentReaction(Document, TimestampMixin):
+class PostReaction(Document, TimestampMixin):
+    post_id: PydanticObjectId
     user_id: PydanticObjectId
-    comment_id: PydanticObjectId
-    reaction: VideoCommentReactionType
+    reaction: ReactionType
 
     class Settings:
-        name = "video_comment_reactions"
+        name = "post_reactions"
         indexes = [
-            ("user_id", "comment_id"),
+            [("post_id", 1), ("user_id", 1)],  # UNIQUE
+            "post_id",
+            "user_id",
         ]
-class LiveStreamCommentReactionType(str, Enum):
-    LIKE = "like"
-    DISLIKE = "dislike"
-
-
-class LiveStreamCommentReaction(Document, TimestampMixin):
+class PostComment(Document, TimestampMixin):
+    post_id: PydanticObjectId
     user_id: PydanticObjectId
-    comment_id: PydanticObjectId
-    reaction: LiveStreamCommentReactionType
 
-    class Settings:
-        name = "livestream_comment_reactions"
-        indexes = [
-            ("user_id", "comment_id"),
-        ]
-
-
-class VideoComment(
-    Document,
-    TimestampMixin,
-    SoftDeleteMixin,
-    UserIdMixin
-):
-    """Comment model for video documents"""
-
-    video_id: PydanticObjectId
-    parent_comment_id: Optional[PydanticObjectId] = None
-
-    content: str = Field(..., min_length=1, max_length=2000)
+    content: str
+    parent_comment_id: PydanticObjectId | None = None
+    depth: int = 0
 
     like_count: int = 0
-    dislike_count: int = 0
     reply_count: int = 0
 
-    depth: int = Field(default=0, description="Reply nesting depth, max 3")
-
     class Settings:
-        name = "video_comments"
+        name = "post_comments"
         indexes = [
-            "video_id",
+            "post_id",
             "user_id",
             "parent_comment_id",
         ]
-
-class LiveStreamComment(
-    Document,
-    TimestampMixin,
-    SoftDeleteMixin,
-    UserIdMixin
-):
-    """Comment model for livestream documents"""
-
-    livestream_id: PydanticObjectId
-    parent_comment_id: Optional[PydanticObjectId] = None
-
-    content: str = Field(..., min_length=1, max_length=2000)
-
-    like_count: int = 0
-    dislike_count: int = 0
-    reply_count: int = 0
-
-    depth: int = Field(default=0, description="Reply nesting depth, max 3")
+class PostShare(Document, TimestampMixin):
+    post_id: PydanticObjectId
+    user_id: PydanticObjectId
+    platform: str | None = None   # whatsapp, copy_link, internal
+    target_user_id: PydanticObjectId | None = None
 
     class Settings:
-        name = "livestream_comments"
+        name = "post_shares"
         indexes = [
-            "livestream_id",
+            "post_id",
             "user_id",
-            "parent_comment_id",
         ]

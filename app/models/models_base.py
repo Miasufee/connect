@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 from beanie import before_event, Insert, Replace, SaveChanges, PydanticObjectId
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
@@ -13,30 +15,6 @@ class SoftDeleteMixin(BaseModel):
 
     is_deleted: bool = Field(default=False, description="Whether the document is soft deleted")
     deleted_at: datetime | None = Field(default=None, description="Timestamp when the document was deleted")
-
-    async def soft_delete(self):
-        """
-        Mark this document as deleted instead of removing it from the DB.
-        Updates 'is_deleted' and 'deleted_at' fields.
-        """
-        self.is_deleted = True
-        self.deleted_at = datetime.now(timezone.utc)
-        await self.save()
-
-    async def restore(self):
-        """
-        Restore a soft-deleted document.
-        """
-        self.is_deleted = False
-        self.deleted_at = None
-        await self.save()
-
-    async def hard_delete(self):
-        """
-        Permanently remove the document from the database.
-        Use with caution.
-        """
-        await self.delete()
 
 
 
@@ -59,3 +37,15 @@ def utc_now():
 
 class UserIdMixin(BaseModel):
     user_id: PydanticObjectId
+
+class TitleMixin(BaseModel):
+    title: str = Field(..., min_length=2, max_length=1000)
+
+class DescriptionMixin(BaseModel):
+    description: Optional[str] = None
+
+class ZawiyaIdMixin(BaseModel):
+    zawiya_id: PydanticObjectId
+
+class GroupIdMixin(BaseModel):
+    group_id: Optional[PydanticObjectId] = None
