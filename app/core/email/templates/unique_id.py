@@ -1,6 +1,6 @@
 """Unique ID email template."""
 
-from app.core.services.email.base_template import get_email_template
+from app.core.email.base_template import get_email_template
 
 
 def get_unique_id_html(unique_id: str) -> str:

@@ -69,6 +69,10 @@ class CrudBase(Generic[ModelType]):
         """Find one document by filters."""
         return await self.model.find_one(self._filters(filters, **kwargs))
 
+    async def exists_by_id(self, obj_id):
+        """ Check existence of a document by id """
+        return await self.model.find_one({"_id": obj_id})
+
     async def get_multi(
         self,
         filters: Optional[Dict[str, Any]] = None,
@@ -94,9 +98,7 @@ class CrudBase(Generic[ModelType]):
         obj = await self.model.get(obj_id)
         if not obj:
             return None
-        for k, v in update_data.items():
-            setattr(obj, k, v)
-        await obj.save()
+        await obj.set(update_data)
         return obj
 
     async def update_by_filter(
@@ -110,11 +112,8 @@ class CrudBase(Generic[ModelType]):
         obj = await self.model.find_one(self._filters(filters, **kwargs))
         if not obj:
             return None
-        for k, v in update_data.items():
-            setattr(obj, k, v)
-        await obj.save()
+        await obj.set(update_data)
         return obj
-
     # ---------- DELETE ----------
 
     async def delete(self, obj_id: Any) -> bool:

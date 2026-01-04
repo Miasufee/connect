@@ -1,4 +1,4 @@
-from app.core.services.email import email_service
+from app.core.email import email_service
 from app.core.utils.generator import GeneratorManager, IDPrefix
 from app.core.response.success import Success
 from app.core.response.exceptions import Exceptions

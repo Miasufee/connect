@@ -1,6 +1,6 @@
 """Welcome email template."""
 
-from app.core.services.email.base_template import get_email_template
+from app.core.email.base_template import get_email_template
 
 
 def get_welcome_html(user_name: str = None) -> str:

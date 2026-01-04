@@ -12,7 +12,7 @@ class Post(Document, TimestampMixin, ZawiyaIdMixin, GroupIdMixin, UserIdMixin):
     like_count: int = 0
     dislike_count: int = 0
 
-    visibility: VisibilityStatus = VisibilityStatus.PUBLIC
+    visibility: VisibilityStatus = VisibilityStatus.PRIVATE
 
     class Settings:
         name = "contents"

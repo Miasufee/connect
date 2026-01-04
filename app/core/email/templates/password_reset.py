@@ -1,6 +1,6 @@
 """Password reset email template."""
 
-from app.core.services.email.base_template import get_email_template
+from app.core.email.base_template import get_email_template
 
 
 def get_password_reset_html(reset_url: str, expires_in_minutes: int = 30) -> str:

@@ -2,7 +2,7 @@ from typing import Optional
 
 from beanie import PydanticObjectId
 
-from app.crud.livestream_cruds.livestream_event_crud import event_crud
+from app.crud.content.livestream_cruds.livestream_event_crud import event_crud
 
 
 class EventSrvice:

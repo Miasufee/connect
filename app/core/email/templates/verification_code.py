@@ -1,6 +1,6 @@
 """Verification code email template."""
 
-from app.core.services.email.base_template import get_email_template
+from app.core.email.base_template import get_email_template
 
 
 def get_verification_code_html(verification_code: str, expires_in_minutes: int = 10) -> str:

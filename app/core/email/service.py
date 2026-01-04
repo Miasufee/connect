@@ -6,7 +6,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from app.core.utils.settings import settings
-from app.core.services.email.templates import (
+from app.core.email.templates import (
     get_verification_code_html,
     get_verification_code_text,
     get_welcome_html,

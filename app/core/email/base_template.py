@@ -1,6 +1,6 @@
 """Base email template wrapper."""
 
-from app.core.services.email.styles import get_base_styles
+from app.core.email.styles import get_base_styles
 
 
 def get_email_template(header_icon: str, header_title: str, content: str) -> str:

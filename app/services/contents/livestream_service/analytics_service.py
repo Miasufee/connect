@@ -1,6 +1,6 @@
 from beanie import PydanticObjectId
 
-from app.crud.livestream_cruds.livestream_anaytics_crud import analytics_crud
+from app.crud.content.livestream_cruds.livestream_anaytics_crud import analytics_crud
 
 
 class AnalyticsService:

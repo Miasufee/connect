@@ -1,6 +1,6 @@
 from beanie import PydanticObjectId
 
-from app.crud.livestream_cruds.recording_crud import recording_crud
+from app.crud.content.livestream_cruds.recording_crud import recording_crud
 from app.models import RecordingStatus, Recording
 
 

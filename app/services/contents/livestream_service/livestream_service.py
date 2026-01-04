@@ -1,8 +1,8 @@
 from beanie import PydanticObjectId
 from typing import  Optional
 from app.crud import live_stream_crud
-from app.crud.livestream_cruds.livestream_anaytics_crud import analytics_crud
-from app.crud.livestream_cruds.participant_crud import participant_crud
+from app.crud.content.livestream_cruds.livestream_anaytics_crud import analytics_crud
+from app.crud.content.livestream_cruds.participant_crud import participant_crud
 from app.models import LiveStream, StreamStatus, ParticipantRole, utc_now
 
 

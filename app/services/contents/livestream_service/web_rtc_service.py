@@ -1,7 +1,7 @@
 from beanie import PydanticObjectId
 
-from app.crud.livestream_cruds.web_rtc_crud import webrtc_session_crud
-from app.crud.livestream_cruds.web_rtc_peer_crud import webrtc_peer_crud
+from app.crud.content.livestream_cruds.web_rtc_crud import webrtc_session_crud
+from app.crud.content.livestream_cruds.web_rtc_peer_crud import webrtc_peer_crud
 from app.models import WebRTCSession, WebRTCPeer
 
 

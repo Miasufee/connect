@@ -85,4 +85,9 @@ class AudioStatus(str, Enum):
 
 class ReactionType(str, Enum):
     LIKE = "like"
-    DISLIKE = "dislike"   # optional
+    DISLIKE = "dislike"
+
+class GroupRole:
+    OWNER = "owner"
+    ADMIN = "admin"
+    MEMBER = "member"

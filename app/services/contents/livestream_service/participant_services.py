@@ -1,6 +1,6 @@
 from beanie import PydanticObjectId
 
-from app.crud.livestream_cruds.participant_crud import participant_crud
+from app.crud.content.livestream_cruds.participant_crud import participant_crud
 from app.models import ParticipantRole, LiveStreamParticipant
 
 
