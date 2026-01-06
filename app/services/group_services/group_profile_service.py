@@ -1,0 +1,2 @@
+class GroupProfileService:
+    pass

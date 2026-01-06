@@ -61,7 +61,7 @@ class ZawiyaProfileService:
         zawiya_id: PydanticObjectId,
         user_id: PydanticObjectId,
     ):
-        if not await zawiya_admin_crud.is_owner(user_id, zawiya_id):
+        if not await zawiya_admin_crud.is_group_owner(user_id, zawiya_id):
             raise Exceptions.permission_denied("You are not the owner")
 
         deleted = await zawiya_profile_crud.delete_zawiya_profile(zawiya_id)

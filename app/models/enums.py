@@ -90,4 +90,17 @@ class ReactionType(str, Enum):
 class GroupRole:
     OWNER = "owner"
     ADMIN = "admin"
+    MODERATOR = "moderator"
     MEMBER = "member"
+
+class InviteStatus(str, Enum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+    EXPIRED = "expired"
+
+class JoinRequestStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+

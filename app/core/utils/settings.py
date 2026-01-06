@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Optional
 
 from pydantic_settings import BaseSettings
 
@@ -88,6 +89,11 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
     LOG_FILE: str | None = None
+    log_level: str = "INFO"
+    log_format: str = "json"
+    otel_enabled: bool = False
+    otel_exporter_endpoint: Optional[str] = None
+    prometheus_multiproc_dir: str = "/tmp/prometheus_multiproc"
 
     SMTP_USERNAME: str = ""
     SMTP_PASSWORD: str = ""
