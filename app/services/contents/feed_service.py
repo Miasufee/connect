@@ -1,128 +1,125 @@
-from typing import List
-from bson import ObjectId
-from beanie import SortDirection
+from typing import List, Dict
+from beanie import PydanticObjectId
+from fastapi import BackgroundTasks
+import aioredis
+import asyncio
+import json
 
-from app.services.subscription_service import SubscriptionService
-from app.services.livestream_service import LiveStreamService
-from app.crud.crud_content import ContentCrud
-from app.models import VisibilityStatus
+from app.crud.content.audio_crud import audio_crud
+from app.crud.content.image_crud import image_gallery_crud
+from app.crud.content.post_crud import zawiya_post_crud, group_post_crud
+from app.crud.content.video_crud import video_crud
 
-class ContentService(ContentCrud):
-    def __init__(self):
-        super().__init__()
+from app.crud.interactions_cruds.like_dislike_crud import PostReactionCrud
 
-    # ---------------- FOLLOWING FEED ----------------
-    async def get_following_feed(
-        self,
-        user_id: ObjectId,
-        *,
-        skip: int = 0,
-        limit: int = 20,
-    ):
-        from app.models import ZawiyaSubscription
+# ---------------------- REDIS SETUP ----------------------
+redis = aioredis.from_url("redis://localhost:6379", decode_responses=True)
+FEED_TTL = 60       # seconds
+MEDIA_TTL = 300     # seconds per post media
 
-        # 1. Get followed zawiyas
-        subscriptions = await ZawiyaSubscription.find(
-            {
-                "user_id": user_id,
-                "is_deleted": False,
+# ---------------------- FEED SERVICE ----------------------
+class UnifiedFeedService:
+
+    # ----------------- INTERNAL CACHING -----------------
+    @staticmethod
+    async def _cache(key: str, value: dict, ttl: int = FEED_TTL):
+        await redis.set(key, json.dumps(value, default=str), ex=ttl)
+
+    @staticmethod
+    async def _get_cached(key: str):
+        cached = await redis.get(key)
+        if cached:
+            return json.loads(cached)
+        return None
+
+    @staticmethod
+    async def _refresh_cache(key: str, fetch_func, *args, **kwargs):
+        result = await fetch_func(*args, **kwargs)
+        await UnifiedFeedService._cache(key, result)
+
+    # ----------------- MEDIA CACHE -----------------
+    @staticmethod
+    async def _cache_media(post_id: str, media: dict):
+        key = f"post_media:{post_id}"
+        await redis.set(key, json.dumps(media, default=str), ex=MEDIA_TTL)
+
+    @staticmethod
+    async def _get_cached_media(post_id: str):
+        key = f"post_media:{post_id}"
+        cached = await redis.get(key)
+        if cached:
+            return json.loads(cached)
+        return None
+
+    @staticmethod
+    async def _attach_media(post: Dict) -> Dict:
+        post_id = str(post.get("content_id"))
+        media = await UnifiedFeedService._get_cached_media(post_id)
+        if not media:
+            media = {
+                "videos": await video_crud.get_multi(filters={"content_id": post_id}),
+                "audios": await audio_crud.get_multi(filters={"content_id": post_id}),
+                "images": await image_gallery_crud.get_multi(filters={"content_id": post_id}),
             }
-        ).to_list()
+            await UnifiedFeedService._cache_media(post_id, media)
+        post["media"] = media
+        return post
 
-        zawiya_ids = [s.zawiya_id for s in subscriptions]
+    @staticmethod
+    async def _attach_media_bulk(posts: List[Dict]) -> List[Dict]:
+        return await asyncio.gather(*[UnifiedFeedService._attach_media(p) for p in posts])
 
-        if not zawiya_ids:
-            return []
-
-        # 2. Get content from followed zawiyas
-        return await self.list(
-            filters={
-                "zawiya_id": {"$in": zawiya_ids},
-                "visibility": VisibilityStatus.PUBLIC,
-                "is_deleted": False,
-            },
-            skip=skip,
-            limit=limit,
-            order_desc=True,
-        )
-
-    # ---------------- ZAWIYA FEED ----------------
-    async def get_zawiya_feed(
-        self,
-        zawiya_id: ObjectId,
-        *,
-        skip: int = 0,
-        limit: int = 20,
+    # ----------------- GENERIC FEED FETCHER -----------------
+    @staticmethod
+    async def _fetch_feed_with_cache(
+        key: str,
+        fetch_func,
+        background_tasks: BackgroundTasks = None,
+        *args, **kwargs
     ):
-        return await self.list(
-            filters={
-                "zawiya_id": zawiya_id,
-                "visibility": VisibilityStatus.PUBLIC,
-                "is_deleted": False,
-            },
-            skip=skip,
-            limit=limit,
-            order_desc=True,
-        )
-class FeedService:
-    def __init__(self):
-        self.subscriptions = SubscriptionService()
-        self.content = ContentService()
-        self.livestreams = LiveStreamService()
+        cached = await UnifiedFeedService._get_cached(key)
+        if cached:
+            if background_tasks:
+                background_tasks.add_task(UnifiedFeedService._refresh_cache, key, fetch_func, *args, **kwargs)
+            return cached
 
-    # ---------------- HOME FEED ----------------
-    async def get_home_feed(
-        self,
-        user_id: ObjectId,
-        *,
-        skip: int = 0,
-        limit: int = 20,
-    ):
-        # 1. Followed zawiyas
-        followed_zawiyas = await self.subscriptions.get_followed_zawiyas(user_id)
+        feed = await fetch_func(*args, **kwargs)
+        if "items" in feed:
+            feed["items"] = await UnifiedFeedService._attach_media_bulk(feed["items"])
+        await UnifiedFeedService._cache(key, feed)
+        return feed
 
-        # 2. Live streams (highest priority)
-        live_streams = await self.livestreams.get_live_streams_for_user(
-            followed_zawiyas
-        )
+    # ----------------- FEEDS -----------------
+    @staticmethod
+    async def for_you(user_id: PydanticObjectId, page: int = 1, per_page: int = 20, background_tasks: BackgroundTasks = None):
+        key = f"for_you:{user_id}:{page}"
+        return await UnifiedFeedService._fetch_feed_with_cache(key, zawiya_post_crud.feed_for_you, background_tasks, page, per_page)
 
-        # 3. Posts from followed zawiyas
-        posts = await self.content.get_following_feed(
-            user_id=user_id,
-            skip=skip,
-            limit=limit,
-        )
+    @staticmethod
+    async def following(user_id: PydanticObjectId, following_zawiyas: List[PydanticObjectId], page: int = 1, per_page: int = 20, background_tasks: BackgroundTasks = None):
+        key = f"following:{user_id}:{page}"
+        return await UnifiedFeedService._fetch_feed_with_cache(key, zawiya_post_crud.feed_following, background_tasks, following_zawiyas, page, per_page)
 
-        return {
-            "live": live_streams,
-            "posts": posts,
-        }
-class ForYouService:
-    def __init__(self):
-        self.content = ContentService()
+    @staticmethod
+    async def live(user_id: PydanticObjectId, page: int = 1, per_page: int = 20, background_tasks: BackgroundTasks = None):
+        key = f"live:{user_id}:{page}"
+        return await UnifiedFeedService._fetch_feed_with_cache(key, zawiya_post_crud.feed_live, background_tasks, page, per_page)
 
-    async def get_for_you_feed(
-        self,
-        *,
-        skip: int = 0,
-        limit: int = 20,
-    ):
-        """
-        For now:
-        - Public content
-        - Latest first
-        Later:
-        - Ranking
-        - Engagement
-        - Personalization
-        """
+    @staticmethod
+    async def by_zawiya(zawiya_id: PydanticObjectId, page: int = 1, per_page: int = 20, background_tasks: BackgroundTasks = None):
+        key = f"zawiya_feed:{zawiya_id}:{page}"
+        return await UnifiedFeedService._fetch_feed_with_cache(key, zawiya_post_crud.feed_by_zawiya, background_tasks, zawiya_id, page, per_page)
 
-        return await self.content.list(
-            filters={
-                "visibility": VisibilityStatus.PUBLIC,
-                "is_deleted": False,
-            },
-            skip=skip,
-            limit=limit,
-            order_desc=True,
-        )
+    @staticmethod
+    async def by_group(group_id: PydanticObjectId, page: int = 1, per_page: int = 20, background_tasks: BackgroundTasks = None):
+        key = f"group_feed:{group_id}:{page}"
+        return await UnifiedFeedService._fetch_feed_with_cache(key, group_post_crud.feed_by_group, background_tasks, group_id, page, per_page)
+
+    # ----------------- POST INTERACTIONS -----------------
+    @staticmethod
+    async def like_post(post_id):
+        return await PostReactionCrud.like_zawiya_post(post_id)
+
+    @staticmethod
+    async def dislike_post(post_id):
+        return await PostReactionCrud.dislike_zawiya_post(post_id)

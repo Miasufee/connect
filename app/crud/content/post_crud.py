@@ -1,182 +1,101 @@
-from typing import Optional, Dict, Any
-from beanie import PydanticObjectId
-
+from typing import List, Optional
+from beanie import PydanticObjectId, SortDirection
 from app.crud import CrudBase
-from app.models import Post, ContentType, VisibilityStatus
+from app.models import ZawiyaPost, GroupPost, VisibilityStatus
 
 
-class PostCrud(CrudBase[Post]):
+# ----------------- ZAWIYA POSTS -----------------
+class ZawiyaPostCrud(CrudBase[ZawiyaPost]):
     def __init__(self):
-        super().__init__(Post)
+        super().__init__(ZawiyaPost)
 
-    # ---------- CREATE ----------
+    async def feed_for_you(self, page: int = 1, per_page: int = 20):
+        """ For You feed with live boost, engagement, media richness, and recency."""
+        pipeline = [
+            # Only published public posts
+            {"$match": {"is_deleted": False, "published": True, "visibility": "PUBLIC"}},
 
-    async def create_post(
+            # Add computed fields
+            {"$addFields": {
+                # Basic engagement score
+                "score": {"$add": ["$like_count", "$view_count", "$dislike_count"]},
+                # Boost pinned/live posts
+                "live_boost": {"$cond": [{"$eq": ["$pinned", True]}, 10, 0]},
+                # Media richness score (count number of attached media)
+                "media_count": {"$add": [
+                    {"$size": {"$ifNull": ["$video_ids", []]}},
+                    {"$size": {"$ifNull": ["$audio_ids", []]}},
+                    {"$size": {"$ifNull": ["$image_ids", []]}}
+                ]},
+            }},
+
+            # Sort by live boost -> engagement -> media richness -> newest first
+            {"$sort": {"live_boost": -1, "score": -1, "media_count": -1, "created_at": -1}},
+
+            # Pagination
+            {"$skip": (page - 1) * per_page},
+            {"$limit": per_page},
+        ]
+        return await self.aggregate(pipeline)
+
+    async def feed_following(
         self,
-        *,
-        zawiya_id: PydanticObjectId,
-        group_id: Optional[PydanticObjectId],
-        user_id: PydanticObjectId,
-        content_id: PydanticObjectId,
-        content_type: ContentType,
-        visibility: VisibilityStatus = VisibilityStatus.PRIVATE,
-        published: bool = False,
-    ) -> Post:
-        return await self.create(
-            zawiya_id=zawiya_id,
-            group_id=group_id,
-            user_id=user_id,
-            content_id=content_id,
-            content_type=content_type,
-            visibility=visibility,
-            published=published,
-        )
-
-    # ---------- READ ----------
-
-    async def get_by_id(self, post_id: PydanticObjectId) -> Optional[Post]:
-        return await self.get(post_id)
-
-    async def get_zawiya_posts(
-        self,
-        zawiya_id: PydanticObjectId,
-        *,
+        following_zawiya_ids: List[PydanticObjectId],
         page: int = 1,
-        per_page: int = 30,
-    ) -> Dict[str, Any]:
-        filters = {
-            "zawiya_id": zawiya_id,
-            "is_deleted": False,
-            "published": True,
-        }
+        per_page: int = 20
+    ) -> dict:
+        """Posts from followed zawiyas."""
+        filters = {"zawiya_id": {"$in": following_zawiya_ids}, "is_deleted": False, "published": True}
+        return await self.paginate(page=page, per_page=per_page, filters=filters, order_by="created_at")
 
-        return await self.paginate(
-            page=page,
-            per_page=per_page,
-            filters=filters,
-            order_by="created_at"
-,
-        )
+    async def feed_live(
+        self,
+        live_status_only: bool = True,
+        page: int = 1,
+        per_page: int = 20
+    ) -> dict:
+        """Live or recorded posts."""
+        filters = {"is_deleted": False, "published": True}
+        return await self.paginate(page=page, per_page=per_page, filters=filters, order_by="created_at")
 
-    async def get_group_posts(
+    async def feed_by_zawiya(
+        self,
+        zawiya_id: PydanticObjectId,
+        page: int = 1,
+        per_page: int = 20
+    ) -> dict:
+        """Posts for a specific Zawiya."""
+        filters = {"zawiya_id": zawiya_id, "is_deleted": False, "published": True}
+        return await self.paginate(page=page, per_page=per_page, filters=filters, order_by="created_at")
+
+
+# ----------------- GROUP POSTS -----------------
+class GroupPostCrud(CrudBase[GroupPost]):
+    def __init__(self):
+        super().__init__(GroupPost)
+
+    async def feed_by_group(
         self,
         group_id: PydanticObjectId,
-        *,
         page: int = 1,
-        per_page: int = 30,
-    ) -> Dict[str, Any]:
-        return await self.paginate(
-            page=page,
-            per_page=per_page,
-            filters={
-                "group_id": group_id,
-                "is_deleted": False,
-                "published": True,
-            },
-            oorder_by="created_at"
-,
+        per_page: int = 20
+    ) -> dict:
+        """ group feed with pinned posts first."""
+        # Pinned posts first
+        pinned = await self.get_multi(
+            filters={"group_id": group_id, "is_pinned": True, "is_deleted": False, "published": True},
+            order_by=[("created_at", SortDirection.DESCENDING)]
         )
-
-    async def get_user_posts(
-        self,
-        user_id: PydanticObjectId,
-        *,
-        page: int = 1,
-        per_page: int = 30,
-    ) -> dict[str, Any]:
-        return await self.paginate(
-            page=page,
-            per_page=per_page,
-            filters={
-                "user_id": user_id,
-                "is_deleted": False,
-            },
-            order_by="created_at"
-,
+        # Normal posts
+        normal = await self.get_multi(
+            filters={"group_id": group_id, "is_pinned": False, "is_deleted": False, "published": True},
+            order_by=[("created_at", SortDirection.DESCENDING)],
+            skip=(page-1)*per_page,
+            limit=per_page
         )
+        return {"items": pinned + normal, "total": len(pinned) + len(normal), "page": page, "per_page": per_page}
 
-    # ---------- UPDATE ----------
 
-    async def publish(self, post_id: PydanticObjectId) -> bool:
-        post = await self.get(post_id)
-        if not post or post.is_deleted:
-            return False
-
-        post.published = True
-        await post.save()
-        return True
-
-    async def unpublish(self, post_id: PydanticObjectId) -> bool:
-        post = await self.get(post_id)
-        if not post:
-            return False
-
-        post.published = False
-        await post.save()
-        return True
-
-    async def pin(self, post_id: PydanticObjectId) -> bool:
-        post = await self.get(post_id)
-        if not post or post.is_deleted:
-            return False
-
-        post.is_pinned = True
-        await post.save()
-        return True
-
-    async def unpin(self, post_id: PydanticObjectId) -> bool:
-        post = await self.get(post_id)
-        if not post:
-            return False
-
-        post.is_pinned = False
-        await post.save()
-        return True
-
-    async def update_visibility(
-        self,
-        post_id: PydanticObjectId,
-        visibility: VisibilityStatus,
-    ) -> bool:
-        post = await self.get(post_id)
-        if not post:
-            return False
-
-        post.visibility = visibility
-        await post.save()
-        return True
-
-    # ---------- COUNTERS ----------
-
-    # ---------- COUNTERS ----------
-
-    async def increment_like(self, post_id: PydanticObjectId, value: int = 1):
-        await self.model.find_one({"_id": post_id}).update_one(
-            {"$inc": {"like_count": value}}
-        )
-
-    async def increment_dislike(self, post_id: PydanticObjectId, value: int = 1):
-        await self.model.find_one({"_id": post_id}).update_one(
-            {"$inc": {"dislike_count": value}}
-        )
-    # ---------- DELETE ----------
-
-    async def soft_delete_post(self, post_id: PydanticObjectId) -> bool:
-        post = await self.get(post_id)
-        if not post or post.is_deleted:
-            return False
-
-        post.is_deleted = True
-        await post.save()
-        return True
-
-    async def restore_post(self, post_id: PydanticObjectId) -> bool:
-        post = await self.get(post_id)
-        if not post or not post.is_deleted:
-            return False
-
-        post.is_deleted = False
-        await post.save()
-        return True
-
-post_crud = PostCrud()
+# ----------------- SINGLETONS -----------------
+zawiya_post_crud = ZawiyaPostCrud()
+group_post_crud = GroupPostCrud()

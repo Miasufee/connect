@@ -1,23 +1,71 @@
+from __future__ import annotations
+
 from beanie import Document, PydanticObjectId
+from pydantic import Field
 
-from app.models import TimestampMixin, VisibilityStatus, ContentType, ZawiyaIdMixin, GroupIdMixin, UserIdMixin
+from app.models import (
+    TimestampMixin,
+    SoftDeleteMixin,
+    VisibilityStatus,
+    ContentType,
+    UserIdMixin, ZawiyaIdMixin, GroupIdMixin,
+)
 
 
-class Post(Document, TimestampMixin, ZawiyaIdMixin, GroupIdMixin, UserIdMixin):
-    content_id: PydanticObjectId # video live-stream image
+class PostBase(
+    Document,
+    TimestampMixin,
+    SoftDeleteMixin,
+    UserIdMixin,
+):
+    """
+    A post is a wrapper around content (video, image, audio, stream).
+    """
+
+    content_id: PydanticObjectId
     content_type: ContentType
-    is_deleted: bool = False
-    is_pinned: bool = False
-    published: bool = False
-    like_count: int = 0
-    dislike_count: int = 0
 
+    published: bool = False
     visibility: VisibilityStatus = VisibilityStatus.PRIVATE
 
+    like_count: int = 0
+    dislike_count: int = 0
+    comment_count: int = 0
+
     class Settings:
-        name = "contents"
+        is_root = True  # 👈 IMPORTANT (Beanie inheritance)
+
+
+class ZawiyaPost(PostBase, ZawiyaIdMixin):
+    """
+    Post published under a Zawiya (channel).
+    """
+    pinned: bool = False
+
+    class Settings:
+        name = "zawiya_posts"
         indexes = [
             "zawiya_id",
+            "content_type",
+            "published",
+            "visibility",
+        ]
+
+
+
+class GroupPost(PostBase, GroupIdMixin):
+    """
+    Post published inside a Group.
+    """
+
+    is_pinned: bool = False
+
+    class Settings:
+        name = "group_posts"
+        indexes = [
             "group_id",
             "content_type",
+            "published",
+            "visibility",
+            "is_pinned",
         ]
