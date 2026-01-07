@@ -1,24 +1,49 @@
 from beanie import PydanticObjectId
 
-from app.core.response.exceptions import Exceptions
-from app.services.zawiya.zawiya_permissions import zawiya_permission
+from app.crud.content.video_crud import video_crud
+from app.models import VideoStatus, ContentType
+from app.services.contents.content_base_service import BaseContentService
+from app.services.contents.post_service import PostService
 
 
-class VideoService:
-    def __init__(self):
-        pass
+class VideoService(BaseContentService):
 
-    @staticmethod
-    async def _create_video(
-            zawiya_id: PydanticObjectId,
-            group_id: PydanticObjectId | None,
-            user_id: PydanticObjectId,
-            title: str,
-            description: str | None
+    @classmethod
+    async def create_video(
+        cls,
+        *,
+        user_id: PydanticObjectId,
+        title: str,
+        description: str | None = None,
+        zawiya_id: PydanticObjectId | None = None,
+        group_id: PydanticObjectId | None = None,
     ):
-        is_owner = await zawiya_permission.require_admin_or_owner(
+
+        await cls.validate_target(
             zawiya_id=zawiya_id,
-            user_id=user_id
+            group_id=group_id,
         )
-        if not is_owner:
-            raise Exceptions.forbidden(detail="Your not and admin")
+
+        await cls.check_permissions(
+            zawiya_id=zawiya_id,
+            group_id=group_id,
+            user_id=user_id,
+        )
+
+        new_video = await video_crud.create(
+            user_id=user_id,
+            zawiya_id=zawiya_id,
+            group_id=group_id,
+            title=title,
+            description=description,
+            status=VideoStatus.UPLOADED,
+        )
+
+        post = await PostService.create_post_for_content(
+            user_id=user_id,
+            content_id=new_video.id,
+            content_type=ContentType.VIDEO,
+            zawiya_id=zawiya_id,
+            group_id=group_id,
+        )
+        return post

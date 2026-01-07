@@ -33,7 +33,7 @@ class PostBase(
     comment_count: int = 0
 
     class Settings:
-        is_root = True  # 👈 IMPORTANT (Beanie inheritance)
+        is_root = True
 
 
 class ZawiyaPost(PostBase, ZawiyaIdMixin):

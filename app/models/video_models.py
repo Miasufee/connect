@@ -6,7 +6,7 @@ from app.models import TimestampMixin, VideoStatus, TitleMixin, DescriptionMixin
 
 class Video(Document, TimestampMixin, TitleMixin, DescriptionMixin, ZawiyaIdMixin, UserIdMixin, GroupIdMixin):
     file_path: str
-    status: VideoStatus
+    status: VideoStatus = VideoStatus.UPLOADED
 
     class Settings:
         name = "videos"

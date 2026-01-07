@@ -115,4 +115,9 @@ class ZawiyaAdmin(Document, TimestampMixin, SoftDeleteMixin):
 
     class Settings:
         name = "zawiya_admins"
-        indexes = [("user_id", "zawiya_id")]
+        indexes = [
+            IndexModel(
+                [("user_id", 1), ("zawiya_id", 1)],
+                unique=True
+            )
+        ]
