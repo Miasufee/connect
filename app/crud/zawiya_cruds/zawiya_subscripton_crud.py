@@ -5,6 +5,7 @@ from app.crud import CrudBase
 from app.models.zawiya_models import ZawiyaSubscription, NotificationLevel
 
 class ZawiyaSubscriptionCrud(CrudBase[ZawiyaSubscription]):
+    """ Zawiya SubScription Management """
     def __init__(self):
         super().__init__(ZawiyaSubscription)
 

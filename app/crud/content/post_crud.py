@@ -6,6 +6,7 @@ from app.models import ZawiyaPost, GroupPost, VisibilityStatus
 
 # ----------------- ZAWIYA POSTS -----------------
 class ZawiyaPostCrud(CrudBase[ZawiyaPost]):
+    """ Zawiya Post Crud Management """
     def __init__(self):
         super().__init__(ZawiyaPost)
 
@@ -71,6 +72,7 @@ class ZawiyaPostCrud(CrudBase[ZawiyaPost]):
 
 # ----------------- GROUP POSTS -----------------
 class GroupPostCrud(CrudBase[GroupPost]):
+    """ Group Crud Management """
     def __init__(self):
         super().__init__(GroupPost)
 

@@ -8,6 +8,7 @@ from app.models.user_models import User
 
 
 class UserCRUD(CrudBase[User]):
+    """ User Crud Management """
     def __init__(self):
         super().__init__(User)
 

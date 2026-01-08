@@ -10,8 +10,6 @@ from app.crud.content.image_crud import image_gallery_crud
 from app.crud.content.post_crud import zawiya_post_crud, group_post_crud
 from app.crud.content.video_crud import video_crud
 
-from app.crud.interactions_cruds.like_dislike_crud import PostReactionCrud
-
 # ---------------------- REDIS SETUP ----------------------
 redis = aioredis.from_url("redis://localhost:6379", decode_responses=True)
 FEED_TTL = 60       # seconds
@@ -114,12 +112,3 @@ class UnifiedFeedService:
     async def by_group(group_id: PydanticObjectId, page: int = 1, per_page: int = 20, background_tasks: BackgroundTasks = None):
         key = f"group_feed:{group_id}:{page}"
         return await UnifiedFeedService._fetch_feed_with_cache(key, group_post_crud.feed_by_group, background_tasks, group_id, page, per_page)
-
-    # ----------------- POST INTERACTIONS -----------------
-    @staticmethod
-    async def like_post(post_id):
-        return await PostReactionCrud.like_zawiya_post(post_id)
-
-    @staticmethod
-    async def dislike_post(post_id):
-        return await PostReactionCrud.dislike_zawiya_post(post_id)

@@ -8,3 +8,4 @@ from .content_models import *
 from .image_model import *
 from .text_models import *
 from .audio_models import *
+from .webrtc_models import *

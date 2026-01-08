@@ -4,6 +4,7 @@ from app.crud import CrudBase
 from app.models.zawiya_models import ZawiyaAnalytics
 
 class ZawiyaAnalyticsCrud(CrudBase[ZawiyaAnalytics]):
+    """ Zawiya Analytics Crud Management """
     def __init__(self):
         super().__init__(ZawiyaAnalytics)
 

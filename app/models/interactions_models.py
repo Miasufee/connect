@@ -11,7 +11,7 @@ class PostReaction(Document, TimestampMixin):
     class Settings:
         name = "post_reactions"
         indexes = [
-            [("post_id", 1), ("user_id", 1)],  # UNIQUE
+            [("post_id", 1), ("user_id", 1)],
             "post_id",
             "user_id",
         ]
@@ -22,6 +22,7 @@ class PostComment(Document, TimestampMixin):
     content: str
     parent_comment_id: PydanticObjectId | None = None
     depth: int = 0
+    is_shadow_banned: bool = False
 
     like_count: int = 0
     reply_count: int = 0
@@ -36,7 +37,7 @@ class PostComment(Document, TimestampMixin):
 class PostShare(Document, TimestampMixin):
     post_id: PydanticObjectId
     user_id: PydanticObjectId
-    platform: str | None = None   # whatsapp, copy_link, internal
+    platform: str | None = None
     target_user_id: PydanticObjectId | None = None
 
     class Settings:

@@ -9,13 +9,9 @@ from app.models.zawiya_models import ZawiyaAdmin, ZawiyaRoles
 
 
 class ZawiyaAdminCRUD(CrudBase[ZawiyaAdmin]):
-
+    """ ZawiyaAdmin Crud Management """
     def __init__(self):
         super().__init__(ZawiyaAdmin)
-
-    # =====================================================
-    # OWNER CHECKS
-    # =====================================================
 
     @staticmethod
     async def is_owner(
@@ -36,10 +32,6 @@ class ZawiyaAdminCRUD(CrudBase[ZawiyaAdmin]):
     ) -> None:
         if not await self.is_owner(user_id, zawiya_id):
             raise Exceptions.forbidden("Owner only")
-
-    # =====================================================
-    # ADMIN LOOKUPS
-    # =====================================================
 
     async def get_admin(
         self,
@@ -82,9 +74,6 @@ class ZawiyaAdminCRUD(CrudBase[ZawiyaAdmin]):
             return True
         return await self.is_admin(user_id, zawiya_id)
 
-    # =====================================================
-    # ADD ADMIN (WITH RESTORE SUPPORT)
-    # =====================================================
 
     async def add_admin(
         self,
@@ -121,10 +110,6 @@ class ZawiyaAdminCRUD(CrudBase[ZawiyaAdmin]):
             role=role,
         )
 
-    # =====================================================
-    # UPDATE ADMIN ROLE
-    # =====================================================
-
     async def update_role(
         self,
         *,
@@ -148,10 +133,6 @@ class ZawiyaAdminCRUD(CrudBase[ZawiyaAdmin]):
         await admin.save()
         return admin
 
-    # =====================================================
-    # REMOVE ADMIN (SOFT DELETE)
-    # =====================================================
-
     async def remove_admin(
         self,
         *,
@@ -168,10 +149,6 @@ class ZawiyaAdminCRUD(CrudBase[ZawiyaAdmin]):
             raise Exceptions.conflict("Owner cannot be removed")
 
         await admin.soft_delete()
-
-    # =====================================================
-    # LIST ADMINS
-    # =====================================================
 
     async def list_admins(
         self,

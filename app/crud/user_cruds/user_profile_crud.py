@@ -5,6 +5,7 @@ from ...models import UserProfile
 
 
 class UserProfileCrud(CrudBase[UserProfile]):
+    """ User Profile Crud Management """
     def __init__(self):
         super().__init__(UserProfile)
 

@@ -4,6 +4,7 @@ from app.models import StreamAnalytics
 
 # ---------- Analytics ----------
 class StreamAnalyticsCrud(CrudBase[StreamAnalytics]):
+    """ LiveStream Crud Management """
     def __init__(self):
         super().__init__(StreamAnalytics)
 

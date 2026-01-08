@@ -5,6 +5,7 @@ from app.models import TextPost
 
 
 class TextCrud(CrudBase[TextPost]):
+    """ Text Crud Management """
     def __init__(self):
         super().__init__(TextPost)
 

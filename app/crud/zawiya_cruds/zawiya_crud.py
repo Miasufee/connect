@@ -10,7 +10,7 @@ from app.core.response.exceptions import Exceptions
 
 
 class ZawiyaCrud(CrudBase[Zawiya]):
-
+    """ Zawiya Crud Management """
     def __init__(self):
         super().__init__(Zawiya)
 

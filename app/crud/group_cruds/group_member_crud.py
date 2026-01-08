@@ -6,6 +6,7 @@ from app.models.group_models import GroupMember
 
 
 class GroupMemberCrud(CrudBase[GroupMember]):
+    """ GroupMember Crud Management """
     def __init__(self):
         super().__init__(GroupMember)
 

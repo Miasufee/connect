@@ -3,6 +3,7 @@ from app.models import LiveStream
 
 # ---------- LiveStream ----------
 class LiveStreamCrud(CrudBase[LiveStream]):
+    """ LiveStream Crud Management """
     def __init__(self):
         super().__init__(LiveStream)
 

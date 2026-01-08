@@ -4,6 +4,7 @@ from app.models import LiveStreamEvent
 
 # ---------- Events ----------
 class LiveStreamEventCrud(CrudBase[LiveStreamEvent]):
+    """ LiveStreamEvent Crud Management """
     def __init__(self):
         super().__init__(LiveStreamEvent)
 

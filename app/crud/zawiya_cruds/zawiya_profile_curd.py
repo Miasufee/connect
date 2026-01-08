@@ -9,6 +9,7 @@ from app.crud import CrudBase
 from app.models.zawiya_models import ZawiyaProfile
 
 class ZawiyaProfileCrud(CrudBase[ZawiyaProfile]):
+    """ Zawiya Profile Crud Management """
     def __init__(self):
         super().__init__(ZawiyaProfile)
 

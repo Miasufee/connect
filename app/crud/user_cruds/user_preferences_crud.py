@@ -1,10 +1,11 @@
 from fastapi import HTTPException
 
-from ..crud_base import CrudBase
-from ...models import UserPreferences
+from app.crud import CrudBase
+from app.models import UserPreferences
 
 
 class UserPreferencesCrud(CrudBase[UserPreferences]):
+    """ User Preferences Crud Management """
     def __init__(self):
         super().__init__(UserPreferences)
 

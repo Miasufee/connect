@@ -1,5 +1,3 @@
-# app/crud/user_phone_number_crud.py
-
 from fastapi import HTTPException, status
 from datetime import datetime
 
