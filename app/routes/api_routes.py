@@ -12,6 +12,17 @@ from app.routes.zawiya.zawiya_profile_routes import router as zawiya_profile_rou
 from app.routes.user.superuser_routes import router as superuser_router
 from .auth.refreshd_routes import refresh_router
 from .auth.verification_code_routes import verification_router
+from .content.feed_routes import feed_router
+from .content.interaction_routes.comment_moderation_routes import comment_moderation_router
+from .content.interaction_routes.comment_query_routes import comment_query_router
+from .content.interaction_routes.comment_ranking_routes import comment_ranking_router
+from .content.interaction_routes.comment_reaction_routes import comment_reaction_router
+from .content.interaction_routes.comment_routes import comment_router
+from .group.group_invite_routes import group_invite_router
+from .group.group_join_routes import group_join_router
+from .group.group_member_routes import group_member_router
+from .group.group_profile_routes import group_profile_router
+from .group.group_routes import group_router
 from .user.user_profile_routes import profile_router
 from .user.phone_number_routes import phone_router
 from .user.user_prefrences import preferences_router
@@ -37,3 +48,14 @@ api_router.include_router(preferences_router)
 api_router.include_router(refresh_router)
 api_router.include_router(verification_router)
 api_router.include_router(zawiya_subscription_router, tags=["Zawiya Subscriptions"])
+api_router.include_router(comment_moderation_router)
+api_router.include_router(comment_query_router)
+api_router.include_router(comment_ranking_router)
+api_router.include_router(comment_reaction_router)
+api_router.include_router(comment_router)
+api_router.include_router(feed_router)
+api_router.include_router(group_invite_router)
+api_router.include_router(group_join_router)
+api_router.include_router(group_member_router)
+api_router.include_router(group_profile_router)
+api_router.include_router(group_router)

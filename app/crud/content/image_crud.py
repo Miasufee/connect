@@ -9,7 +9,7 @@ class ImageCrud(CrudBase[Image]):
 
 image_crud = ImageCrud()
 
-class ImageGalleryCrud([ImageGallery]):
+class ImageGalleryCrud(CrudBase[ImageGallery]):
     """ ImageGallery Crud Management """
     def __init__(self):
         super().__init__(ImageGallery)

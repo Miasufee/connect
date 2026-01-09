@@ -9,3 +9,6 @@ from .image_model import *
 from .text_models import *
 from .audio_models import *
 from .webrtc_models import *
+from .group_models import *
+from .notification_models import *
+from .interactions_models import *

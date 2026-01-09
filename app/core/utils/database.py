@@ -3,10 +3,13 @@ from __future__ import annotations
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from beanie import init_beanie
 from app.core.utils.settings import settings
-from app.models.user_models import User, VerificationCode, RefreshedToken, UserProfile, PhoneNumber, \
-    UserPreferences, PasswordResetToken
-from app.models.zawiya_models import (Zawiya, ZawiyaProfile, ZawiyaAddress,
-                                      ZawiyaAnalytics, ZawiyaAdmin, ZawiyaSubscription)
+from app.models import (User, VerificationCode, RefreshedToken, UserProfile, PhoneNumber,UserPreferences,
+                        PasswordResetToken, Zawiya, ZawiyaProfile, ZawiyaAddress, ZawiyaAnalytics, ZawiyaAdmin,
+                        ZawiyaSubscription, Group, GroupProfile, GroupMember, GroupInvite, GroupJoinRequest,
+                        Audio, ZawiyaPost, GroupPost, Image, ImageGallery, PostReaction, PostComment, PostShare,
+                        LiveStream, LiveStreamParticipant, LiveStreamEvent, StreamAnalytics, Recording, Notification,
+                        TextPost, Video, WebRTCSession, WebRTCPeer)
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -45,7 +48,11 @@ class Database:
                         ZawiyaAddress,
                         ZawiyaAnalytics,
                         ZawiyaAdmin,
-                        ZawiyaSubscription
+                        ZawiyaSubscription,
+                        Group, GroupProfile, GroupMember, GroupInvite, GroupJoinRequest, Audio, ZawiyaPost, GroupPost,
+                        Image, ImageGallery, PostReaction, PostComment, PostShare, LiveStream, LiveStreamParticipant,
+                        LiveStreamEvent, StreamAnalytics, Recording, Notification, TextPost, Video, WebRTCSession,
+                        WebRTCPeer
                     ],
                 )
 

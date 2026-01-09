@@ -1,5 +1,6 @@
 from beanie import PydanticObjectId
 
+from app.core.response.exceptions import Exceptions
 from app.crud.group_cruds.group_member_crud import group_member_crud
 from app.models import GroupRole
 from app.services.group_services.group_policy import GroupPolicy
@@ -27,7 +28,7 @@ class GroupMemberService:
         user_id: PydanticObjectId,
     ):
         return await group_member_crud.delete_by_filter(
-            {"group_id": group_id, "user_id": user_id}
+            filters={"group_id": group_id, "user_id": user_id}
         )
 
     @staticmethod
@@ -38,7 +39,7 @@ class GroupMemberService:
         target_user_id: PydanticObjectId,
     ):
         if not await GroupPolicy.is_group_owner(group_id, actor_id):
-            raise PermissionError("Only owner can promote admins")
+            raise Exceptions.forbidden(detail="Only owner can promote admins")
 
         return await group_member_crud.update_role(
             group_id,
@@ -54,7 +55,7 @@ class GroupMemberService:
         target_user_id: PydanticObjectId,
     ):
         if not await GroupPolicy.is_group_owner(group_id, actor_id):
-            raise PermissionError("Only owner can demote admins")
+            raise Exceptions.forbidden(detail="Only owner can demote admins")
 
         return await group_member_crud.update_role(
             group_id,
@@ -72,7 +73,7 @@ class GroupMemberService:
         can_stream: bool | None = None,
     ):
         if not await GroupPolicy.is_group_admin(group_id, actor_id):
-            raise PermissionError("Admins only")
+            raise Exceptions.forbidden(detail="Admins only")
 
         return await group_member_crud.update_permissions(
             group_id,

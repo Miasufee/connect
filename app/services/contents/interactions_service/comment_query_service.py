@@ -1,5 +1,4 @@
 from beanie import PydanticObjectId
-from app.models.interactions_models import PostComment
 from app.crud.interactions_cruds.post_comment_crud import post_comment_crud
 
 
@@ -15,19 +14,23 @@ class CommentQueryService:
         skip = (page - 1) * per_page
 
         items = await post_comment_crud.get_multi(
-            PostComment.post_id == post_id,
-            PostComment.parent_comment_id == None,
-            PostComment.is_shadow_banned == False,
+            filters={
+                "post_id": post_id,
+                "parent_comment_id": None,
+                "is_shadow_banned": False
+            },
             order_by="-created_at",
             skip=skip,
             limit=per_page,
         )
 
-        total = await PostComment.find(
-            PostComment.post_id == post_id,
-            PostComment.parent_comment_id == None,
-            PostComment.is_shadow_banned == False,
-        ).count()
+        total = post_comment_crud.count(
+            filters={
+                "post_id": post_id,
+                "parent_comment_id": None,
+                "is_shadow_banned": False
+            }
+        )
 
         return {
             "items": items,
@@ -43,8 +46,10 @@ class CommentQueryService:
         limit: int = 10,
     ):
         return await post_comment_crud.get_multi(
-            PostComment.parent_comment_id == parent_comment_id,
-            PostComment.is_shadow_banned == False,
+            filters={
+                "parent_comment_id": parent_comment_id,
+                "is_shadow_banned": True
+            },
             order_by="created_at",
             limit=limit,
         )

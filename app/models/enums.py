@@ -87,7 +87,7 @@ class ReactionType(str, Enum):
     LIKE = "like"
     DISLIKE = "dislike"
 
-class GroupRole:
+class GroupRole(str, Enum):
     OWNER = "owner"
     ADMIN = "admin"
     MODERATOR = "moderator"

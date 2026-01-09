@@ -7,7 +7,7 @@ from typing import Any, Optional, Dict, List, Union
 from pydantic import BaseModel, ConfigDict
 import enum
 
-# Handle Beanie's PydanticObjectId if available
+
 try:
     from beanie import PydanticObjectId
 

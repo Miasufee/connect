@@ -2,10 +2,12 @@ from typing import Optional
 
 from beanie import PydanticObjectId
 
+from app.core.response.exceptions import Exceptions
 from app.crud.group_cruds.group_crud import group_crud
 from app.crud.group_cruds.group_member_crud import group_member_crud
 from app.models import GroupRole, VisibilityStatus
 from app.services.group_services.group_policy import GroupPolicy
+from app.services.group_services.group_profile_service import GroupProfileService
 
 
 class GroupService:
@@ -34,6 +36,8 @@ class GroupService:
             can_stream=True,
         )
 
+        await GroupProfileService.set_group_profile(group_id=group.id)
+
         return group
 
     @staticmethod
@@ -45,7 +49,7 @@ class GroupService:
         description: Optional[str] = None,
     ):
         if not await GroupPolicy.is_group_admin(group_id, actor_id):
-            raise PermissionError("Not allowed")
+            raise Exceptions.forbidden(detail="Not allowed")
 
         return await group_crud.update(
             group_id,
@@ -60,7 +64,7 @@ class GroupService:
         visibility: VisibilityStatus,
     ):
         if not await GroupPolicy.is_group_owner(group_id, actor_id):
-            raise PermissionError("Only owner can change visibility")
+            raise Exceptions.forbidden(detail="Only owner can change visibility")
 
         return await group_crud.update(group_id, {"visibility": visibility})
 
@@ -71,7 +75,7 @@ class GroupService:
         actor_id: PydanticObjectId,
     ) -> bool:
         if not await GroupPolicy.is_group_owner(group_id, actor_id):
-            raise PermissionError("Only owner can delete group")
+            raise Exceptions.forbidden(detail="Only owner can delete group")
 
         return await group_crud.soft_delete(group_id)
 
@@ -82,6 +86,6 @@ class GroupService:
         actor_id: PydanticObjectId,
     ) -> bool:
         if not await GroupPolicy.is_group_owner(group_id, actor_id):
-            raise PermissionError("Only owner can restore group")
+            raise Exceptions.forbidden(detail="Only owner can restore group")
 
         return await group_crud.restore(group_id)

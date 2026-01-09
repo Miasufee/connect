@@ -89,7 +89,7 @@ class ZawiyaCrud(CrudBase[Zawiya]):
             page=page,
             per_page=per_page,
             filters=filters,
-            order_by=("created_at", -1),
+            order_by="created_at",
         )
 
 

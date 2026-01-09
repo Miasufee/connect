@@ -1,5 +1,4 @@
-from typing import Optional
-from beanie import Document, PydanticObjectId
+from beanie import Document
 from app.models import TimestampMixin, AudioStatus, ZawiyaIdMixin, GroupIdMixin, UserIdMixin, TitleMixin, \
     DescriptionMixin
 

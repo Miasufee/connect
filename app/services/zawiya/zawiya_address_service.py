@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from beanie import PydanticObjectId
 
 from app.core.response.exceptions import Exceptions
@@ -27,22 +25,30 @@ class ZawiyaAddressService:
             user_id=user_id
         )
 
-        return await zawiya_address_crud.set_address(
-            zawiya_id=zawiya_id,
-            country=country,
-            state=state,
-            city=city,
-            address=address,
-            postal_code=postal_code,
-            latitude=latitude,
-            longitude=longitude
+        data = {
+            "country": country,
+            "state": state,
+            "city": city,
+            "address": address,
+            "postal_code": postal_code,
+            "latitude": latitude,
+            "longitude": longitude
+        }
+
+        update_data = {k: v for k, v in data.items() if v is not None}
+
+        await zawiya_address_crud.upsert(
+            filters={"zawiya_id": zawiya_id},
+            update_data=update_data
         )
+
+        return Success.ok(message="Address set successfully")
 
     @staticmethod
     async def get_zawiya_address(
             zawiya_id: PydanticObjectId
     ):
-        address = await zawiya_address_crud.get_address(zawiya_id=zawiya_id)
+        address = await zawiya_address_crud.get_one(zawiya_id=zawiya_id)
         if not address:
             Exceptions.not_found(detail="Address not found")
         return address
@@ -54,7 +60,7 @@ class ZawiyaAddressService:
     ):
         await zawiya_permission.require_owner(zawiya_id=zawiya_id, user_id=user_id)
 
-        deleted = await zawiya_address_crud.delete_zawiya_address(zawiya_id=zawiya_id)
+        deleted = await zawiya_address_crud.delete(zawiya_id=zawiya_id)
         if not deleted:
             raise Exceptions.not_found("zawiya address not found")
         return Success.content_deleted()
