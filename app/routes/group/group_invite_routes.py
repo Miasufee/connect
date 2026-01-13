@@ -5,7 +5,7 @@ from app.core.utils.dependencies import RegularUser
 from app.models import InviteStatus
 from app.services.group_services.group_invite_service import GroupInviteService
 
-group_invite_router = APIRouter(prefix="/invite")
+group_invite_router = APIRouter(prefix="/invite", tags=["invite-routes"])
 
 @group_invite_router.post("/user")
 async def _invite_user(

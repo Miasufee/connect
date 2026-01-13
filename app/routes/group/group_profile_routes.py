@@ -4,7 +4,7 @@ from fastapi import APIRouter, UploadFile
 from app.core.utils.dependencies import RegularUser
 from app.services.group_services.group_profile_service import GroupProfileService
 
-group_profile_router = APIRouter()
+group_profile_router = APIRouter(tags=["group_profile"])
 
 @group_profile_router.put("/update/profile")
 async def _update_group_profile(

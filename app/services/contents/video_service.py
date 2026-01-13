@@ -47,3 +47,11 @@ class VideoService(BaseContentService):
             group_id=group_id,
         )
         return post
+
+    @staticmethod
+    async def update_video():
+        pass
+
+    @staticmethod
+    async def delete_video():
+        pass

@@ -5,7 +5,7 @@ from beanie import PydanticObjectId
 from app.core.utils.dependencies import RegularUser
 from app.services.contents.feed_service import UnifiedFeedService
 
-feed_router = APIRouter()
+feed_router = APIRouter(tags=["feed-routes"])
 
 
 @feed_router.get("/zawiya/for-you")

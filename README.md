@@ -89,3 +89,24 @@ optional **private groups** for teaching, communities, or organizations
 
 **Start simple. Scale when needed.**
 
+FastAPI Upload
+    │
+    ├── Storage Layer (Local / S3 / MinIO)
+    │
+    ├── Image Pipeline (OpenCV)
+    │       ├── Compression
+    │       ├── Resize
+    │       └── Thumbnails
+    │
+    ├── Audio Pipeline (FFmpeg-compatible)
+    │       ├── Validation
+    │       ├── Duration
+    │       └── Metadata
+    │
+    └── Beanie Models
+            ├── Image
+            ├── ImageGallery
+            ├── Audio
+            └── Post (Image / Audio attachment)
+
+

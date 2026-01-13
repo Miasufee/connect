@@ -6,6 +6,8 @@ from beanie import before_event, Insert, Replace, SaveChanges, PydanticObjectId
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 
+from app.models.enums import ContentType, VisibilityStatus
+
 
 class SoftDeleteMixin(BaseModel):
     """
@@ -49,3 +51,14 @@ class ZawiyaIdMixin(BaseModel):
 
 class GroupIdMixin(BaseModel):
     group_id: Optional[PydanticObjectId] = None
+
+class PostMixin(BaseModel):
+
+    content_id: PydanticObjectId
+    content_type: ContentType
+    published: bool = False
+    visibility: VisibilityStatus = VisibilityStatus.PRIVATE
+    like_count: int = 0
+    dislike_count: int = 0
+    comment_count: int = 0
+

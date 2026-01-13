@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str = ""
     REDIRECT_URI: str = ""
 
+    STORAGE_BACKEND: str = "local"
+
     # -----------------------
     # MongoDB
     # -----------------------

@@ -4,7 +4,7 @@ from .user_models import *
 from .video_models import *
 from .livesteam_models import *
 from .zawiya_models import *
-from .content_models import *
+from .post_models import *
 from .image_model import *
 from .text_models import *
 from .audio_models import *
@@ -12,3 +12,4 @@ from .webrtc_models import *
 from .group_models import *
 from .notification_models import *
 from .interactions_models import *
+from .image_audio_content_models import *

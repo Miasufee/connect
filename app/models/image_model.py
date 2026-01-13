@@ -13,7 +13,7 @@ class Image(Document, TimestampMixin):
         name = "images"
 
 class ImageGallery(Document, TimestampMixin, ZawiyaIdMixin, GroupIdMixin, UserIdMixin, TitleMixin, DescriptionMixin):
-    image_ids: List[PydanticObjectId]  # references Image
+    image_ids: List[PydanticObjectId]
     caption: str | None = None
 
     class Settings:

@@ -5,7 +5,7 @@ from app.core.utils.dependencies import RegularUser
 from app.models import JoinRequestStatus
 from app.services.group_services.group_join_request_service import GroupJoinRequestService
 
-group_join_router = APIRouter(prefix="/group/request")
+group_join_router = APIRouter(prefix="/group/request", tags=["group-request"])
 
 
 @group_join_router.post("/")
